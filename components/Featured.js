@@ -1,61 +1,118 @@
 import Center from "@/components/Center";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import ButtonLink from "@/components/ButtonLink";
 import CartIcon from "@/components/icons/CartIcon";
 import FlyingButton from "@/components/FlyingButton";
 import { RevealWrapper } from "next-reveal";
 
-const Bg = styled.div`
-  background-color: #222;
-  color: #fff;
-  padding: 50px 0;
-`;
-const Title = styled.h1`
-  margin: 0;
-  font-weight: normal;
-  font-size: 1.5rem;
-  @media screen and (min-width: 768px) {
-    font-size: 3rem;
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 `;
-const Desc = styled.p`
-  color: #aaa;
-  font-size: 0.8rem;
+
+const Bg = styled.div`
+  background: linear-gradient(135deg, #ff6f61 0%, #ffa07a 100%);
+  color: #fff;
+  padding: 80px 20px;
+  border-radius: 15px;
+  margin: 20px 0;
+  font-family: "Poppins", sans-serif;
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+  animation: ${fadeIn} 1s ease-in-out;
+  overflow: hidden;
+  position: relative;
 `;
+
+const Title = styled.h1`
+  margin: 0;
+  font-weight: bold;
+  font-size: 2.5rem;
+  color: #fff;
+  text-align: center;
+  background: linear-gradient(to right, #fff, #ffebcd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: ${fadeIn} 1s ease-in-out 0.2s forwards;
+  opacity: 0;
+  @media screen and (min-width: 768px) {
+    font-size: 4rem;
+  }
+`;
+
+const Desc = styled.p`
+  color: #fbe7e4;
+  font-size: 1.1rem;
+  text-align: center;
+  margin-top: 20px;
+  opacity: 0;
+  animation: ${fadeIn} 1s ease-in-out 0.4s forwards;
+  @media screen and (min-width: 768px) {
+    font-size: 1.3rem;
+  }
+`;
+
 const ColumnsWrapper = styled.div`
   display: grid;
   grid-template-columns: 1fr;
   gap: 40px;
+  animation: ${fadeIn} 1s ease-in-out 0.6s forwards;
+  opacity: 0;
+
   img.main {
     max-width: 100%;
-    max-height: 200px;
+    max-height: 300px;
     display: block;
     margin: 0 auto;
+    border-radius: 15px;
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease-in-out;
   }
-  div:nth-child(1) {
-    order: 2;
-    margin-left: auto;
-    margin-right: auto;
+  img.main:hover {
+    transform: scale(1.05);
   }
+
   @media screen and (min-width: 768px) {
     grid-template-columns: 1.1fr 0.9fr;
-    & > div:nth-child(1) {
-      order: 0;
-    }
-    img {
-      max-width: 100%;
-    }
   }
 `;
+
 const Column = styled.div`
   display: flex;
   align-items: center;
+  justify-content: center;
 `;
+
 const ButtonsWrapper = styled.div`
   display: flex;
-  gap: 10px;
-  margin-top: 25px;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 35px;
+  align-items: center;
+  opacity: 0;
+  animation: ${fadeIn} 1s ease-in-out 0.8s forwards;
+
+  @media screen and (min-width: 768px) {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  button,
+  a {
+    transition: transform 0.3s ease;
+  }
+
+  button:hover,
+  a:hover {
+    transform: translateY(-5px);
+  }
 `;
+
 const CenterImg = styled.div`
   display: flex;
   align-items: center;
@@ -69,7 +126,11 @@ const ImgColumn = styled(Column)`
   }
 `;
 
-const ContentWrapper = styled.div``;
+const ContentWrapper = styled.div`
+  text-align: center;
+  opacity: 0;
+  animation: ${fadeIn} 1s ease-in-out 0.4s forwards;
+`;
 
 export default function Featured({ product }) {
   return (

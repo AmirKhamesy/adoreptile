@@ -1,27 +1,29 @@
 import Link from "next/link";
 import styled from "styled-components";
-import Center from "@/components/Center";
 import { useContext, useState } from "react";
 import { CartContext } from "@/components/CartContext";
 import BarsIcon from "@/components/icons/Bars";
 import SearchIcon from "@/components/icons/SearchIcon";
+import Center from "@/components/Center";
 
 const StyledHeader = styled.header`
-  background-color: #222;
+  background-color: #f7e7e4;
   position: sticky;
   top: 0;
   z-index: 10;
+  padding: 15px 0;
 `;
 const Logo = styled(Link)`
-  color: #fff;
+  color: #ff6f61;
   text-decoration: none;
-  position: relative;
-  z-index: 3;
+  font-family: "Poppins", sans-serif;
+  font-size: 1.5rem;
+  font-weight: bold;
 `;
 const Wrapper = styled.div`
   display: flex;
   justify-content: space-between;
-  padding: 20px 0;
+  align-items: center;
 `;
 const StyledNav = styled.nav`
   ${(props) =>
@@ -39,7 +41,8 @@ const StyledNav = styled.nav`
   left: 0;
   right: 0;
   padding: 70px 20px 20px;
-  background-color: #222;
+  background-color: #f7e7e4;
+  z-index: 9;
   @media screen and (min-width: 768px) {
     display: flex;
     position: static;
@@ -48,13 +51,10 @@ const StyledNav = styled.nav`
 `;
 const NavLink = styled(Link)`
   display: block;
-  color: #aaa;
+  color: #ff6f61;
   text-decoration: none;
-  min-width: 30px;
+  font-family: "Poppins", sans-serif;
   padding: 10px 0;
-  svg {
-    height: 20px;
-  }
   @media screen and (min-width: 768px) {
     padding: 0;
   }
@@ -64,10 +64,9 @@ const NavButton = styled.button`
   width: 30px;
   height: 30px;
   border: 0;
-  color: white;
+  color: #ff6f61;
   cursor: pointer;
-  position: relative;
-  z-index: 3;
+  z-index: 11;
   @media screen and (min-width: 768px) {
     display: none;
   }
@@ -76,13 +75,7 @@ const SideIcons = styled.div`
   display: flex;
   align-items: center;
   a {
-    display: inline-block;
-    min-width: 20px;
-    color: white;
-    svg {
-      width: 14px;
-      height: 14px;
-    }
+    color: #ff6f61;
   }
 `;
 

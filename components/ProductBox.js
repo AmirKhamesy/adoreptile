@@ -1,128 +1,151 @@
 import styled from "styled-components";
-import Button, {ButtonStyle} from "@/components/Button";
-import CartIcon from "@/components/icons/CartIcon";
 import Link from "next/link";
-import {useContext, useEffect, useState} from "react";
-import {CartContext} from "@/components/CartContext";
-import {primary} from "@/lib/colors";
+import { useState } from "react";
+import axios from "axios";
 import FlyingButton from "@/components/FlyingButton";
 import HeartOutlineIcon from "@/components/icons/HeartOutlineIcon";
 import HeartSolidIcon from "@/components/icons/HeartSolidIcon";
-import axios from "axios";
 
 const ProductWrapper = styled.div`
-  button{
-    width: 100%;
-    text-align: center;
-    justify-content: center;
-  }
-`;
-
-const WhiteBox = styled(Link)`
   background-color: #fff;
-  padding: 20px;
-  height: 120px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease-in-out;
+
+  &:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+`;
+
+const ImageContainer = styled.div`
   position: relative;
-  img{
-    max-width: 100%;
-    max-height: 80px;
-  }
-`;
+  padding-top: 100%;
+  background-color: #f7f7f7;
 
-const Title = styled(Link)`
-  font-weight: normal;
-  font-size:.9rem;
-  color:inherit;
-  text-decoration:none;
-  margin:0;
-`;
-
-const ProductInfoBox = styled.div`
-  margin-top: 5px;
-`;
-
-const PriceRow = styled.div`
-  display: block;
-  @media screen and (min-width: 768px) {
-    display: flex;
-    gap: 5px;
-  }
-  align-items: center;
-  justify-content:space-between;
-  margin-top:2px;
-`;
-
-const Price = styled.div`
-  font-size: 1rem;
-  font-weight:400;
-  text-align: right;
-  @media screen and (min-width: 768px) {
-    font-size: 1.2rem;
-    font-weight:600;
-    text-align: left;
+  img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 `;
 
 const WishlistButton = styled.button`
-  border:0;
-  width: 40px !important;
-  height: 40px;
-  padding: 10px;
   position: absolute;
-  top:0;
-  right:0;
-  background:transparent;
+  top: 0px;
+  right: 0px;
+  background: ${(props) => (props.wished ? "#FF7E5F" : "#FFA07A")};
+  border: none;
+  border-radius: 0px 0px 0px 12px;
+  padding: 8px;
   cursor: pointer;
-  ${props => props.wished ? `
-    color:red;
-  ` : `
-    color:black;
-  `}
-  svg{
+  z-index: 1;
+
+  svg {
     width: 16px;
+    height: 16px;
+    color: white;
   }
 `;
 
+const ProductInfoBox = styled.div`
+  text-align: center;
+`;
+
+const Title = styled(Link)`
+  font-size: 0.66rem;
+  font-weight: 300;
+  color: #333;
+  text-decoration: none;
+  font-weight: bold;
+  text-align: left;
+  width: 100%;
+  height: 2rem;
+  display: inline-block;
+  position: relative;
+  padding: 0.66rem;
+`;
+
+const PriceRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem 0.5rem;
+`;
+
+const Price = styled.div`
+  font-weight: 600;
+  color: #333;
+`;
+
+const StyledFlyingButton = styled(FlyingButton)`
+  background-color: #ff7e5f;
+  border: none;
+  border-radius: 5px;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: #ff6b4a;
+  }
+`;
+
+const CartIcon = styled.svg`
+  width: 24px;
+  height: 24px;
+  fill: white;
+`;
+
 export default function ProductBox({
-  _id,title,description,price,images,wished=false,
-  onRemoveFromWishlist=()=>{},
+  _id,
+  title,
+  price,
+  images,
+  wished = false,
+  onRemoveFromWishlist = () => {},
 }) {
-  const url = '/product/'+_id;
-  const [isWished,setIsWished] = useState(wished);
+  const url = "/product/" + _id;
+  const [isWished, setIsWished] = useState(wished);
+
   function addToWishlist(ev) {
     ev.preventDefault();
     ev.stopPropagation();
     const nextValue = !isWished;
-    if (nextValue === false && onRemoveFromWishlist) {
+    if (!nextValue && onRemoveFromWishlist) {
       onRemoveFromWishlist(_id);
     }
-    axios.post('/api/wishlist', {
-      product: _id,
-    }).then(() => {});
+    axios
+      .post("/api/wishlist", {
+        product: _id,
+      })
+      .then(() => {});
     setIsWished(nextValue);
   }
+
   return (
     <ProductWrapper>
-      <WhiteBox href={url}>
-        <div>
-          <WishlistButton wished={isWished} onClick={addToWishlist}>
-            {isWished ? <HeartSolidIcon /> : <HeartOutlineIcon />}
-          </WishlistButton>
-          <img src={images?.[0]} alt=""/>
-        </div>
-      </WhiteBox>
+      <ImageContainer>
+        <WishlistButton wished={isWished} onClick={addToWishlist}>
+          {isWished ? <HeartSolidIcon /> : <HeartOutlineIcon />}
+        </WishlistButton>
+        <img src={images?.[0]} alt={title} />
+      </ImageContainer>
       <ProductInfoBox>
-        <Title href={url}>{title}</Title>
+        <Title href={url} data-full-title={title}>
+          {title}
+        </Title>
         <PriceRow>
-          <Price>
-            ${price}
-          </Price>
-          <FlyingButton _id={_id} src={images?.[0]}>Add to cart</FlyingButton>
+          <Price>${price}</Price>
+          <StyledFlyingButton _id={_id} src={images?.[0]}>
+            <CartIcon xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path d="M7 18c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm10 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm-12.086-2l1.307-5h11.559l1.307 5h-14.173zm13.086-14h-14v2h1.551l3.399 13h10.1l3.399-13h1.551v-2h-6.699l-3-3h-4.602l-3 3h-6.699v2zm-8.142-2h2.086l1.5 1.5h-5.086l1.5-1.5z" />
+            </CartIcon>
+          </StyledFlyingButton>
         </PriceRow>
       </ProductInfoBox>
     </ProductWrapper>

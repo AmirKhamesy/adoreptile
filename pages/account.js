@@ -19,9 +19,6 @@ const ColsWrapper = styled.div`
   grid-template-columns: 1.2fr 0.8fr;
   gap: 40px;
   margin: 40px 0;
-  p {
-    margin: 5px;
-  }
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -35,8 +32,32 @@ const CityHolder = styled.div`
 
 const WishedProductsGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 2.5rem;
+  color: #ff7e5f;
+  margin-bottom: 1rem;
+`;
+
+const StyledWhiteBox = styled(WhiteBox)`
+  background-color: #f7e7e4;
+  padding: 2rem;
+`;
+
+const StyledButton = styled(Button)`
+  background-color: #ff7e5f;
+  color: white;
+
+  &:hover {
+    background-color: #ff6b4a;
+  }
 `;
 
 export default function AccountPage() {
@@ -67,16 +88,15 @@ export default function AccountPage() {
     const data = { name, email, city, streetAddress, postalCode, country };
     axios.put("/api/address", data);
   }
+
   useEffect(() => {
     if (!session) {
       return;
     }
-    console.log(session);
     setAddressLoaded(false);
     setWishlistLoaded(false);
     setOrderLoaded(false);
     axios.get("/api/address").then((response) => {
-      console.log(response);
       setName(response.data.name);
       setEmail(response.data.email);
       setCity(response.data.city);
@@ -94,11 +114,13 @@ export default function AccountPage() {
       setOrderLoaded(true);
     });
   }, [session]);
+
   function productRemovedFromWishlist(idToRemove) {
     setWishedProducts((products) => {
       return [...products.filter((p) => p._id.toString() !== idToRemove)];
     });
   }
+
   return (
     <>
       <Header />
@@ -106,7 +128,7 @@ export default function AccountPage() {
         <ColsWrapper>
           <div>
             <RevealWrapper delay={0}>
-              <WhiteBox>
+              <StyledWhiteBox>
                 <Tabs
                   tabs={["Orders", "Wishlist"]}
                   active={activeTab}
@@ -154,13 +176,15 @@ export default function AccountPage() {
                     )}
                   </>
                 )}
-              </WhiteBox>
+              </StyledWhiteBox>
             </RevealWrapper>
           </div>
           <div>
             <RevealWrapper delay={100}>
-              <WhiteBox>
-                <h2>{session ? "Account details" : "Login"}</h2>
+              <StyledWhiteBox>
+                <SectionTitle>
+                  {session ? "Account details" : "Login"}
+                </SectionTitle>
                 {!addressLoaded && <Spinner fullWidth={true} />}
                 {addressLoaded && session && (
                   <>
@@ -208,23 +232,19 @@ export default function AccountPage() {
                       name="country"
                       onChange={(ev) => setCountry(ev.target.value)}
                     />
-                    <Button black block onClick={saveAddress}>
+                    <StyledButton black block onClick={saveAddress}>
                       Save
-                    </Button>
+                    </StyledButton>
                     <hr />
                   </>
                 )}
                 {session && (
-                  <Button primary onClick={logout}>
-                    Logout
-                  </Button>
+                  <StyledButton onClick={logout}>Logout</StyledButton>
                 )}
                 {!session && (
-                  <Button primary onClick={login}>
-                    Login with Google
-                  </Button>
+                  <StyledButton onClick={login}>Login with Google</StyledButton>
                 )}
-              </WhiteBox>
+              </StyledWhiteBox>
             </RevealWrapper>
           </div>
         </ColsWrapper>

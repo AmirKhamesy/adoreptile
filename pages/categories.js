@@ -1,54 +1,15 @@
 import Header from "@/components/Header";
+import styled from "styled-components";
 import Center from "@/components/Center";
+import { mongooseConnect } from "@/lib/mongoose";
 import { Category } from "@/models/Category";
 import { Product } from "@/models/Product";
 import ProductBox from "@/components/ProductBox";
-import styled from "styled-components";
 import Link from "next/link";
 import { RevealWrapper } from "next-reveal";
-import { mongooseConnect } from "@/lib/mongoose";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { WishedProduct } from "@/models/WishedProduct";
-
-const CategoryGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  @media screen and (min-width: 768px) {
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-  }
-`;
-
-const CategoryTitle = styled.div`
-  display: flex;
-  margin-top: 10px;
-  margin-bottom: 0;
-  align-items: center;
-  gap: 10px;
-  h2 {
-    margin-bottom: 10px;
-    margin-top: 10px;
-  }
-  a {
-    color: #555;
-    display: inline-block;
-  }
-`;
-const CategoryWrapper = styled.div`
-  margin-bottom: 40px;
-`;
-
-const ShowAllSquare = styled(Link)`
-  background-color: #ddd;
-  height: 160px;
-  border-radius: 10px;
-  align-items: center;
-  display: flex;
-  justify-content: center;
-  color: #555;
-  text-decoration: none;
-`;
 
 export default function CategoriesPage({
   mainCategories,
@@ -59,39 +20,80 @@ export default function CategoriesPage({
     <>
       <Header />
       <Center>
-        {mainCategories.map((cat) => (
-          <CategoryWrapper key={cat._id}>
-            <CategoryTitle>
-              <h2>{cat.name}</h2>
-              <div>
-                <Link href={"/category/" + cat._id}>Show all</Link>
-              </div>
-            </CategoryTitle>
-            <CategoryGrid>
-              {categoriesProducts[cat._id].map((p, index) => (
-                <RevealWrapper delay={index * 50} key={p._id}>
-                  <ProductBox {...p} wished={wishedProducts.includes(p._id)} />
-                </RevealWrapper>
-              ))}
-              <RevealWrapper delay={categoriesProducts[cat._id].length * 50}>
-                <ShowAllSquare href={"/category/" + cat._id}>
+        {mainCategories
+          .filter((category) => categoriesProducts[category._id]?.length > 0)
+          .map((category) => (
+            <CategorySection key={category._id}>
+              <CategoryHeader>
+                <SectionTitle>{category.name}</SectionTitle>
+                <StyledLink href={`/category/${category._id}`}>
                   Show all &rarr;
-                </ShowAllSquare>
-              </RevealWrapper>
-            </CategoryGrid>
-          </CategoryWrapper>
-        ))}
+                </StyledLink>
+              </CategoryHeader>
+              <StyledProductsGrid>
+                {categoriesProducts[category._id].map((product, index) => (
+                  <RevealWrapper delay={index * 50} key={product._id}>
+                    <ProductBox
+                      {...product}
+                      wished={wishedProducts.includes(product._id)}
+                    />
+                  </RevealWrapper>
+                ))}
+              </StyledProductsGrid>
+            </CategorySection>
+          ))}
       </Center>
     </>
   );
 }
 
+const CategorySection = styled.div`
+  margin-bottom: 2rem;
+`;
+
+const CategoryHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 2rem;
+  color: #333;
+  font-weight: bold;
+`;
+
+const StyledLink = styled(Link)`
+  font-size: 1rem;
+  color: #ff7e5f;
+  text-decoration: underline;
+
+  &:hover {
+    color: #ff6b4a;
+  }
+`;
+
+const StyledProductsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(1, 1fr);
+  }
+`;
+
 export async function getServerSideProps(ctx) {
   await mongooseConnect();
   const categories = await Category.find();
   const mainCategories = categories.filter((c) => !c.parent);
-  const categoriesProducts = {}; // catId => [products]
+  const categoriesProducts = {};
   const allFetchedProductsId = [];
+
   for (const mainCat of mainCategories) {
     const mainCatId = mainCat._id.toString();
     const childCatIds = categories
@@ -102,8 +104,10 @@ export async function getServerSideProps(ctx) {
       limit: 3,
       sort: { _id: -1 },
     });
-    allFetchedProductsId.push(...products.map((p) => p._id.toString()));
-    categoriesProducts[mainCat._id] = products;
+    if (products.length > 0) {
+      allFetchedProductsId.push(...products.map((p) => p._id.toString()));
+      categoriesProducts[mainCat._id] = products;
+    }
   }
 
   const session = await getServerSession(ctx.req, ctx.res, authOptions);

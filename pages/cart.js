@@ -13,30 +13,35 @@ import { useSession } from "next-auth/react";
 const ColumnsWrapper = styled.div`
   display: grid;
   grid-template-columns: 1fr;
-  @media screen and (min-width: 768px) {
-    grid-template-columns: 1.2fr 0.8fr;
-  }
   gap: 40px;
   margin-top: 40px;
   margin-bottom: 40px;
+
+  @media screen and (min-width: 768px) {
+    grid-template-columns: 1.2fr 0.8fr;
+  }
+
   table thead tr th:nth-child(3),
   table tbody tr td:nth-child(3),
   table tbody tr.subtotal td:nth-child(2) {
     text-align: right;
   }
+
   table tr.subtotal td {
     padding: 15px 0;
   }
+
   table tbody tr.subtotal td:nth-child(2) {
     font-size: 1.4rem;
   }
+
   tr.total td {
     font-weight: bold;
   }
 `;
 
 const Box = styled.div`
-  background-color: #fff;
+  background-color: #f7e7e4;
   border-radius: 10px;
   padding: 30px;
 `;
@@ -57,14 +62,17 @@ const ProductImageBox = styled.div`
   align-items: center;
   justify-content: center;
   border-radius: 10px;
+
   img {
     max-width: 60px;
     max-height: 60px;
   }
+
   @media screen and (min-width: 768px) {
     padding: 10px;
     width: 100px;
     height: 100px;
+
     img {
       max-width: 80px;
       max-height: 80px;
@@ -75,6 +83,7 @@ const ProductImageBox = styled.div`
 const QuantityLabel = styled.span`
   padding: 0 15px;
   display: block;
+
   @media screen and (min-width: 768px) {
     display: inline-block;
     padding: 0 6px;
@@ -84,6 +93,15 @@ const QuantityLabel = styled.span`
 const CityHolder = styled.div`
   display: flex;
   gap: 5px;
+`;
+
+const StyledButton = styled(Button)`
+  background-color: #ff7e5f;
+  color: white;
+
+  &:hover {
+    background-color: #ff6b4a;
+  }
 `;
 
 export default function CartPage() {
@@ -166,7 +184,6 @@ export default function CartPage() {
     productsTotal += price;
   }
 
-  // Calculate the total and format it correctly
   const total = (productsTotal + parseFloat(shippingFee || 0)).toFixed(2);
 
   if (isSuccess) {
@@ -213,22 +230,22 @@ export default function CartPage() {
                           {product.title}
                         </ProductInfoCell>
                         <td>
-                          <Button
+                          <StyledButton
                             onClick={() => lessOfThisProduct(product._id)}
                           >
                             -
-                          </Button>
+                          </StyledButton>
                           <QuantityLabel>
                             {
                               cartProducts.filter((id) => id === product._id)
                                 .length
                             }
                           </QuantityLabel>
-                          <Button
+                          <StyledButton
                             onClick={() => moreOfThisProduct(product._id)}
                           >
                             +
-                          </Button>
+                          </StyledButton>
                         </td>
                         <td>
                           $
@@ -304,9 +321,9 @@ export default function CartPage() {
                   name="country"
                   onChange={(ev) => setCountry(ev.target.value)}
                 />
-                <Button black block onClick={goToPayment}>
+                <StyledButton black block onClick={goToPayment}>
                   Continue to payment
-                </Button>
+                </StyledButton>
               </Box>
             </RevealWrapper>
           )}
