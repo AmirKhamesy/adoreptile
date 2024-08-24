@@ -99,6 +99,7 @@ export default function CartPage() {
   const [country, setCountry] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [shippingFee, setShippingFee] = useState(null);
+
   useEffect(() => {
     if (cartProducts.length > 0) {
       axios.post("/api/cart", { ids: cartProducts }).then((response) => {
@@ -108,6 +109,7 @@ export default function CartPage() {
       setProducts([]);
     }
   }, [cartProducts]);
+
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
@@ -120,6 +122,7 @@ export default function CartPage() {
       setShippingFee(res.data.value);
     });
   }, []);
+
   useEffect(() => {
     if (!session) {
       return;
@@ -133,12 +136,15 @@ export default function CartPage() {
       setCountry(response.data.country);
     });
   }, [session]);
+
   function moreOfThisProduct(id) {
     addProduct(id);
   }
+
   function lessOfThisProduct(id) {
     removeProduct(id);
   }
+
   async function goToPayment() {
     const response = await axios.post("/api/checkout", {
       name,
@@ -153,11 +159,15 @@ export default function CartPage() {
       window.location = response.data.url;
     }
   }
+
   let productsTotal = 0;
   for (const productId of cartProducts) {
     const price = products.find((p) => p._id === productId)?.price || 0;
     productsTotal += price;
   }
+
+  // Calculate the total and format it correctly
+  const total = (productsTotal + parseFloat(shippingFee || 0)).toFixed(2);
 
   if (isSuccess) {
     return (
@@ -174,6 +184,7 @@ export default function CartPage() {
       </>
     );
   }
+
   return (
     <>
       <Header />
@@ -221,22 +232,24 @@ export default function CartPage() {
                         </td>
                         <td>
                           $
-                          {cartProducts.filter((id) => id === product._id)
-                            .length * product.price}
+                          {(
+                            cartProducts.filter((id) => id === product._id)
+                              .length * product.price
+                          ).toFixed(2)}
                         </td>
                       </tr>
                     ))}
                     <tr className="subtotal">
                       <td colSpan={2}>Products</td>
-                      <td>${productsTotal}</td>
+                      <td>${productsTotal.toFixed(2)}</td>
                     </tr>
                     <tr className="subtotal">
                       <td colSpan={2}>Shipping</td>
-                      <td>${shippingFee}</td>
+                      <td>${parseFloat(shippingFee || 0).toFixed(2)}</td>
                     </tr>
                     <tr className="subtotal total">
                       <td colSpan={2}>Total</td>
-                      <td>${productsTotal + parseFloat(shippingFee || 0)}</td>
+                      <td>${total}</td>
                     </tr>
                   </tbody>
                 </Table>
