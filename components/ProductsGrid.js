@@ -5,6 +5,7 @@ import { RevealWrapper } from "next-reveal";
 const StyledProductsGrid = styled.div`
   display: grid;
   gap: 1.5rem;
+  margin-bottom: 2rem;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 
   @media (min-width: 768px) {
