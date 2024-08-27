@@ -21,12 +21,8 @@ export default function ProductsPage({ products, wishedProducts }) {
   const debouncedSearch = useCallback(debounce(searchProducts, 500), []);
 
   useEffect(() => {
-    if (phrase.length > 0) {
-      setIsLoading(true);
-      debouncedSearch(phrase);
-    } else {
-      setFilteredProducts(products);
-    }
+    setIsLoading(true);
+    debouncedSearch(phrase);
   }, [phrase, products]);
 
   function searchProducts(phrase) {
