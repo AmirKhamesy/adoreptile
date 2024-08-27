@@ -4,10 +4,15 @@ import { RevealWrapper } from "next-reveal";
 
 const StyledProductsGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  @media screen and (min-width: 768px) {
-    grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
 `;
 

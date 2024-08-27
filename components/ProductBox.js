@@ -12,7 +12,6 @@ const ProductWrapper = styled.div`
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.3s ease-in-out;
-
   &:hover {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   }
@@ -52,21 +51,25 @@ const WishlistButton = styled.button`
 `;
 
 const ProductInfoBox = styled.div`
-  text-align: center;
+  height: 5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 `;
 
 const Title = styled(Link)`
   font-size: 0.66rem;
-  font-weight: 300;
+  font-weight: bold;
   color: #333;
   text-decoration: none;
-  font-weight: bold;
-  text-align: left;
-  width: 100%;
-  height: 2rem;
-  display: inline-block;
-  position: relative;
-  padding: 0.66rem;
+  word-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limit to 3 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+  margin: 0.3rem 0.5rem;
 `;
 
 const PriceRow = styled.div`

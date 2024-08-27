@@ -75,18 +75,17 @@ const StyledLink = styled(Link)`
 
 const StyledProductsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 16px;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
 
-  @media (max-width: 480px) {
-    grid-template-columns: repeat(1, 1fr);
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
 `;
-
 export async function getServerSideProps(ctx) {
   await mongooseConnect();
   const categories = await Category.find();

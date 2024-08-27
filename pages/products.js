@@ -58,7 +58,7 @@ export default function ProductsPage({ products, wishedProducts }) {
           </NoProductsText>
         )}
         {!isLoading && filteredProducts.length > 0 && (
-          <StyledProductsGrid
+          <ProductsGrid
             products={filteredProducts}
             wishedProducts={wishedProducts}
           />
@@ -98,60 +98,6 @@ const SearchInput = styled(Input)`
   &:focus {
     outline: none;
     border-color: #ff7e5f;
-  }
-`;
-
-const StyledProductsGrid = styled(ProductsGrid)`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 30px;
-
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 480px) {
-    grid-template-columns: repeat(1, 1fr);
-  }
-
-  div {
-    position: relative;
-    overflow: hidden;
-    border-radius: 15px;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease-in-out;
-
-    &:hover {
-      transform: scale(1.08);
-    }
-
-    img {
-      width: 100%;
-      height: auto;
-      transition: transform 0.3s ease-in-out;
-
-      &:hover {
-        transform: scale(1.15);
-      }
-    }
-
-    button {
-      font-size: 1rem;
-      background-color: #ff7e5f;
-      color: white;
-      border: none;
-      padding: 0.7rem 1.5rem;
-      border-radius: 25px;
-      transition: background-color 0.3s ease-in-out;
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-
-      &:hover {
-        background-color: #ff6b4a;
-      }
-    }
   }
 `;
 
