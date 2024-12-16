@@ -23,6 +23,7 @@
     "react-dom": "18.2.0",
     "react-flying-item": "^1.1.2",
     "react-spinners": "^0.13.8",
+    "react-spring": "^9.7.5",
     "stripe": "^11.16.0",
     "styled-components": "^5.3.9"
   }

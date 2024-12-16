@@ -27,6 +27,32 @@ export default async function handler(req, res) {
   const uniqueIds = [...new Set(productsIds)];
   const productsInfos = await Product.find({ _id: uniqueIds });
 
+  const getBestDiscount = (product, quantity) => {
+    if (!product.discounts?.length) return null;
+
+    // Filter discounts where quantity meets or exceeds threshold
+    // Sort by quantity threshold in descending order to get highest eligible quantity
+    const applicableDiscounts = product.discounts
+      .filter((d) => quantity >= d.quantity)
+      .sort((a, b) => b.quantity - a.quantity);
+
+    // Return the discount with highest quantity requirement
+    return applicableDiscounts[0] || null;
+  };
+
+  const calculateProductTotal = (product, quantity) => {
+    if (!product.discounts?.length) return product.price * quantity;
+
+    const bestDiscount = getBestDiscount(product, quantity);
+    if (!bestDiscount) return product.price * quantity;
+
+    if (bestDiscount.type === "fixed") {
+      return (product.price - bestDiscount.value) * quantity;
+    } else {
+      return product.price * (1 - bestDiscount.value / 100) * quantity;
+    }
+  };
+
   let line_items = [];
   for (const productId of uniqueIds) {
     const productInfo = productsInfos.find(
@@ -34,12 +60,13 @@ export default async function handler(req, res) {
     );
     const quantity = productsIds.filter((id) => id === productId)?.length || 0;
     if (quantity > 0 && productInfo) {
+      const totalAmount = calculateProductTotal(productInfo, quantity);
       line_items.push({
         quantity,
         price_data: {
           currency: "USD",
           product_data: { name: productInfo.title },
-          unit_amount: quantity * productInfo.price * 100,
+          unit_amount: Math.round((totalAmount * 100) / quantity), // Convert to cents and get per-unit price
         },
       });
     }

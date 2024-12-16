@@ -1,37 +1,58 @@
-import {createContext, useEffect, useState} from "react";
+import { createContext, useEffect, useState } from "react";
 
 export const CartContext = createContext({});
 
-export function CartContextProvider({children}) {
+export function CartContextProvider({ children }) {
   const ls = typeof window !== "undefined" ? window.localStorage : null;
-  const [cartProducts,setCartProducts] = useState([]);
+  const [cartProducts, setCartProducts] = useState([]);
+
   useEffect(() => {
     if (cartProducts?.length > 0) {
-      ls?.setItem('cart', JSON.stringify(cartProducts));
+      ls?.setItem("cart", JSON.stringify(cartProducts));
+    } else {
+      ls?.removeItem("cart");
     }
   }, [cartProducts]);
+
   useEffect(() => {
-    if (ls && ls.getItem('cart')) {
-      setCartProducts(JSON.parse(ls.getItem('cart')));
+    if (ls && ls.getItem("cart")) {
+      setCartProducts(JSON.parse(ls.getItem("cart")));
     }
   }, []);
+
   function addProduct(productId) {
-    setCartProducts(prev => [...prev,productId]);
+    setCartProducts((prev) => [...prev, productId]);
   }
+
+  function addMultipleProducts(productId, quantity) {
+    setCartProducts((prev) => [...prev, ...Array(quantity).fill(productId)]);
+  }
+
   function removeProduct(productId) {
-    setCartProducts(prev => {
+    setCartProducts((prev) => {
       const pos = prev.indexOf(productId);
       if (pos !== -1) {
-        return prev.filter((value,index) => index !== pos);
+        return prev.filter((value, index) => index !== pos);
       }
       return prev;
     });
   }
+
   function clearCart() {
     setCartProducts([]);
   }
+
   return (
-    <CartContext.Provider value={{cartProducts,setCartProducts,addProduct,removeProduct,clearCart}}>
+    <CartContext.Provider
+      value={{
+        cartProducts,
+        setCartProducts,
+        addProduct,
+        addMultipleProducts,
+        removeProduct,
+        clearCart,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

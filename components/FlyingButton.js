@@ -48,10 +48,11 @@ const FlyingButtonWrapper = styled.div`
 `;
 
 export default function FlyingButton(props) {
-  const { addProduct } = useContext(CartContext);
+  const { addProduct, addMultipleProducts } = useContext(CartContext);
   const imgRef = useRef();
 
   function sendImageToCart(ev) {
+    ev.preventDefault();
     const rect = imgRef.current.getBoundingClientRect();
     const targetX = window.innerWidth - rect.width - 20;
     const targetY = 20;
@@ -66,6 +67,9 @@ export default function FlyingButton(props) {
     setTimeout(() => {
       imgRef.current.style.display = "none";
     }, 1000);
+
+    const quantity = props.quantity || 1;
+    addMultipleProducts(props._id, quantity);
   }
 
   useEffect(() => {
@@ -81,11 +85,7 @@ export default function FlyingButton(props) {
 
   return (
     <>
-      <FlyingButtonWrapper
-        white={props.white}
-        main={props.main}
-        onClick={() => addProduct(props._id)}
-      >
+      <FlyingButtonWrapper white={props.white} main={props.main}>
         <img src={props.src} alt="" ref={imgRef} />
         <button onClick={(ev) => sendImageToCart(ev)} {...props} />
       </FlyingButtonWrapper>
