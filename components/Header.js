@@ -156,8 +156,8 @@ const NavLink = styled(Link)`
 
 const NavButton = styled.button`
   background-color: transparent;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 0;
   color: ${colors.primary};
   cursor: pointer;
@@ -168,9 +168,17 @@ const NavButton = styled.button`
   justify-content: center;
   padding: 0;
   position: relative;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 
-  &:hover {
-    transform: scale(1.1);
+  &:active {
+    transform: scale(0.95);
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      transform: scale(1.1);
+    }
   }
 
   @media screen and (min-width: 768px) {
