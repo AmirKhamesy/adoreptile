@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { ButtonStyle } from "@/components/Button";
-import { primary } from "@/lib/colors";
+import * as colors from "@/lib/colors";
 import { CartContext } from "@/components/CartContext";
 import { useContext, useEffect, useRef } from "react";
 
@@ -10,20 +10,53 @@ const FlyingButtonWrapper = styled.div`
     ${(props) =>
       props.main
         ? `
-      background-color: ${primary};
+      background-color: ${colors.primary};
       color: white;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      border-radius: 12px;
+      
+      &:hover {
+        background-color: ${colors.primaryDark};
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px ${colors.primary}40;
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
     `
         : `
-      background-color: #FFA07A;
-      color: ${primary};
+      background-color: ${colors.primary}15;
+      color: ${colors.primary};
+      border-radius: 12px;
+      
+      &:hover {
+        background-color: ${colors.primary};
+        color: white;
+      }
     `}
+
     ${(props) =>
       props.white &&
       `
-      background-color: white;
+      background-color: rgba(255, 255, 255, 0.9);
+      color: ${colors.primary};
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       font-weight: 500;
+      border-radius: 12px;
+      
+      &:hover {
+        background-color: rgba(255, 255, 255, 1);
+        transform: translateY(-1px);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
     `}
   }
+
   @keyframes fly {
     0% {
       opacity: 1;
@@ -31,10 +64,10 @@ const FlyingButtonWrapper = styled.div`
     }
     100% {
       opacity: 0;
-      transform: translate(200px, -200px) scale(0.5);
-      display: none;
+      transform: translate(150px, -150px) scale(0.3);
     }
   }
+
   img {
     display: none;
     max-width: 100px;
@@ -42,8 +75,15 @@ const FlyingButtonWrapper = styled.div`
     opacity: 1;
     position: fixed;
     z-index: 5;
-    animation: fly 1s forwards;
     border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+    transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.8s ease-out;
+  }
+
+  .flying {
+    animation: fly 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 `;
 
@@ -53,19 +93,22 @@ export default function FlyingButton(props) {
 
   function sendImageToCart(ev) {
     ev.preventDefault();
-    const rect = imgRef.current.getBoundingClientRect();
-    const targetX = window.innerWidth - rect.width - 20;
-    const targetY = 20;
+    const rect = ev.target.getBoundingClientRect();
+    const targetRect = document
+      .querySelector(".cart-count")
+      ?.getBoundingClientRect() || {
+      top: 20,
+      right: window.innerWidth - 20,
+    };
 
-    imgRef.current.style.display = "inline-block";
-    imgRef.current.style.left = ev.clientX - 50 + "px";
-    imgRef.current.style.top = ev.clientY - 50 + "px";
-    imgRef.current.style.transform = `translate(${targetX - ev.clientX}px, ${
-      targetY - ev.clientY
-    }px) scale(0.5)`;
+    imgRef.current.style.display = "block";
+    imgRef.current.style.left = `${ev.clientX - 50}px`;
+    imgRef.current.style.top = `${ev.clientY - 50}px`;
+    imgRef.current.classList.add("flying");
 
     setTimeout(() => {
       imgRef.current.style.display = "none";
+      imgRef.current.classList.remove("flying");
     }, 1000);
 
     const quantity = props.quantity || 1;
@@ -84,11 +127,9 @@ export default function FlyingButton(props) {
   }, []);
 
   return (
-    <>
-      <FlyingButtonWrapper white={props.white} main={props.main}>
-        <img src={props.src} alt="" ref={imgRef} />
-        <button onClick={(ev) => sendImageToCart(ev)} {...props} />
-      </FlyingButtonWrapper>
-    </>
+    <FlyingButtonWrapper white={props.white} main={props.main}>
+      <img src={props.src} alt="" ref={imgRef} />
+      <button onClick={sendImageToCart} {...props} />
+    </FlyingButtonWrapper>
   );
 }

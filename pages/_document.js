@@ -3,8 +3,16 @@ import { Html, Head, Main, NextScript } from "next/document";
 export default function Document() {
   return (
     <Html lang="en">
-      <Head />
-      <body style={{ backgroundColor: "#f7e7e4" }}>
+      <Head>
+        <style>{`
+          body {
+            background-color: #EEFDF4;
+            margin: 0;
+            padding: 0;
+          }
+        `}</style>
+      </Head>
+      <body>
         <Main />
         <NextScript />
       </body>
