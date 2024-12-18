@@ -315,7 +315,15 @@ const SearchHeader = styled.div`
   gap: 1rem;
   min-height: 70px;
   padding-top: calc(env(safe-area-inset-top, 0) + 1rem);
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
+`;
+
+const Divider = styled.div`
+  height: 1px;
+  background: ${colors.primary}15;
+  margin: 1.5rem 0;
+  width: 100%;
+  box-shadow: 0 1px 3px ${colors.primary}05;
 `;
 
 const SearchInput = styled.input`
@@ -662,6 +670,7 @@ export default function Header() {
             ✕
           </CloseSearchButton>
         </SearchHeader>
+        <Divider />
         <SearchResults className={resultsVisible ? "visible" : ""}>
           {isLoading ? (
             <LoadingSpinner />
