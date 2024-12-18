@@ -5,20 +5,34 @@ export const CartContext = createContext({});
 export function CartContextProvider({ children }) {
   const ls = typeof window !== "undefined" ? window.localStorage : null;
   const [cartProducts, setCartProducts] = useState([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
+  // Initialize cart from localStorage
   useEffect(() => {
-    if (cartProducts?.length > 0) {
-      ls?.setItem("cart", JSON.stringify(cartProducts));
-    } else {
-      ls?.removeItem("cart");
-    }
-  }, [cartProducts]);
-
-  useEffect(() => {
-    if (ls && ls.getItem("cart")) {
-      setCartProducts(JSON.parse(ls.getItem("cart")));
+    if (ls && !isInitialized) {
+      const storedCart = ls.getItem("cart");
+      if (storedCart) {
+        try {
+          setCartProducts(JSON.parse(storedCart));
+        } catch (err) {
+          console.error("Error parsing cart from localStorage:", err);
+          ls.removeItem("cart");
+        }
+      }
+      setIsInitialized(true);
     }
   }, []);
+
+  // Update localStorage when cart changes
+  useEffect(() => {
+    if (ls && isInitialized) {
+      if (cartProducts?.length > 0) {
+        ls.setItem("cart", JSON.stringify(cartProducts));
+      } else {
+        ls.removeItem("cart");
+      }
+    }
+  }, [cartProducts, isInitialized]);
 
   function addProduct(productId) {
     setCartProducts((prev) => [...prev, productId]);
