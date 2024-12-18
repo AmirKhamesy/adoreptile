@@ -18,6 +18,13 @@ const StyledHeader = styled.header`
   z-index: 1000;
   transition: all 0.3s ease;
   border-bottom: 1px solid ${colors.primary}22;
+  opacity: 0;
+  transform: translateY(-10px);
+
+  &.mounted {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
   &.scrolled {
     background: ${colors.white}ff;
@@ -270,7 +277,10 @@ export default function Header() {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+    }, 50);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -300,7 +310,11 @@ export default function Header() {
 
   return (
     <>
-      <StyledHeader className={isScrolled ? "scrolled" : ""}>
+      <StyledHeader
+        className={`${isMounted ? "mounted" : ""} ${
+          isScrolled ? "scrolled" : ""
+        }`}
+      >
         <Wrapper>
           <Logo href={"/"}>Adoreptile</Logo>
           <StyledNav>

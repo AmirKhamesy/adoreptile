@@ -12,8 +12,24 @@ export default function Document() {
           }
           #__next {
             padding-top: 70px; /* Height of the header */
+            opacity: 0;
+            transition: opacity 0.2s ease;
+          }
+          /* Only show content when Next.js has loaded */
+          .next-loaded #__next {
+            opacity: 1;
           }
         `}</style>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+            // Add class when Next.js has loaded
+            window.addEventListener('load', function() {
+              document.body.classList.add('next-loaded');
+            });
+          `,
+          }}
+        />
       </Head>
       <body>
         <Main />
