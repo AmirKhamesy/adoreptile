@@ -230,13 +230,22 @@ const SideIcons = styled.div`
 `;
 
 const CartCount = styled.span`
-  background: ${colors.accent};
-  color: ${colors.white};
-  font-size: 0.8rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 1rem;
+  background: ${colors.primary}22;
+  color: ${colors.primary};
+  font-size: 0.75rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.75rem;
   margin-left: 0.5rem;
-  font-weight: 500;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid ${colors.primary}15;
+  min-width: 1.2rem;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const Overlay = styled.div`

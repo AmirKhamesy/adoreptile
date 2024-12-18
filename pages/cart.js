@@ -5,130 +5,355 @@ import Button from "@/components/Button";
 import { useContext, useEffect, useState } from "react";
 import { CartContext } from "@/components/CartContext";
 import axios from "axios";
-import Table from "@/components/Table";
 import Input from "@/components/Input";
 import { RevealWrapper } from "next-reveal";
 import { useSession } from "next-auth/react";
+import * as colors from "@/lib/colors";
 
-const ColumnsWrapper = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 40px;
-  margin-top: 40px;
-  margin-bottom: 40px;
+const PageWrapper = styled.div`
+  min-height: 100vh;
+`;
 
-  @media screen and (min-width: 768px) {
-    grid-template-columns: 1.2fr 0.8fr;
-  }
+const CartContainer = styled.div`
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
 
-  table thead tr th:nth-child(3),
-  table tbody tr td:nth-child(3),
-  table tbody tr.subtotal td:nth-child(2) {
-    text-align: right;
-  }
-
-  table tr.subtotal td {
-    padding: 15px 0;
-  }
-
-  table tbody tr.subtotal td:nth-child(2) {
-    font-size: 1.4rem;
-  }
-
-  tr.total td {
-    font-weight: bold;
+  @media screen and (max-width: 768px) {
+    padding: 1rem;
   }
 `;
 
-const Box = styled.div`
-  background-color: #f7e7e4;
-  border-radius: 10px;
-  padding: 30px;
-`;
-
-const ProductInfoCell = styled.td`
-  padding: 10px 0;
-  button {
-    padding: 0 !important;
-  }
-`;
-
-const ProductImageBox = styled.div`
-  width: 70px;
-  height: 100px;
-  padding: 2px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+const CartTitle = styled.h1`
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: ${colors.primary};
+  margin-bottom: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 10px;
+  gap: 0.5rem;
 
-  img {
-    max-width: 60px;
-    max-height: 60px;
+  svg {
+    width: 2rem;
+    height: 2rem;
+    color: ${colors.primary};
   }
 
-  @media screen and (min-width: 768px) {
-    padding: 10px;
-    width: 100px;
-    height: 100px;
+  @media screen and (max-width: 768px) {
+    font-size: 2rem;
 
-    img {
-      max-width: 80px;
-      max-height: 80px;
+    svg {
+      width: 1.75rem;
+      height: 1.75rem;
     }
   }
 `;
 
-const QuantityLabel = styled.span`
-  padding: 0 15px;
-  display: block;
+const CartGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
 
-  @media screen and (min-width: 768px) {
-    display: inline-block;
-    padding: 0 6px;
+  @media screen and (min-width: 1024px) {
+    grid-template-columns: 1.5fr 1fr;
   }
 `;
 
-const CityHolder = styled.div`
+const CartSection = styled.div`
+  background: ${colors.white};
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 4px 24px ${colors.primary}10;
+
+  @media screen and (max-width: 768px) {
+    padding: 1.5rem;
+  }
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: ${colors.primary};
+  margin-bottom: 1.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   display: flex;
-  gap: 5px;
-`;
+  align-items: center;
+  gap: 0.5rem;
 
-const StyledButton = styled(Button)`
-  background-color: #ff7e5f;
-  color: white;
-
-  &:hover {
-    background-color: #ff6b4a;
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: ${colors.primary};
   }
 `;
 
-const SavingsBox = styled.div`
-  background-color: #f5f5f7;
-  border-radius: 10px;
-  padding: 15px;
-  margin: 10px 0;
+const CartItem = styled.div`
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1.5rem;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid ${colors.background};
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  @media screen and (max-width: 768px) {
+    gap: 1rem;
+  }
 `;
 
-const SavingsTitle = styled.div`
-  color: #1d1d1f;
+const ProductImage = styled.div`
+  width: 100px;
+  height: 100px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: ${colors.background};
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @media screen and (max-width: 768px) {
+    width: 80px;
+    height: 80px;
+  }
+`;
+
+const ProductInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const ProductTitle = styled.h3`
   font-size: 1rem;
   font-weight: 500;
-  margin-bottom: 8px;
+  color: ${colors.textDark};
+  margin: 0;
 `;
 
-const SavingsAmount = styled.div`
-  color: #bf4800;
-  font-size: 0.9rem;
+const ProductPrice = styled.div`
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: ${colors.primary};
 `;
 
-const OriginalPrice = styled.span`
-  text-decoration: line-through;
-  color: #86868b;
-  font-size: 0.9rem;
-  margin-left: 8px;
+const QuantityControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
 `;
+
+const QuantityButton = styled.button`
+  background: ${colors.primary}15;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${colors.primary};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+
+  &:hover {
+    background: ${colors.primary}25;
+  }
+`;
+
+const Quantity = styled.span`
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: ${colors.textDark};
+  min-width: 1.5rem;
+  text-align: center;
+`;
+
+const OrderSummary = styled.div`
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const SummaryRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  color: ${colors.textDark};
+  padding: 0.5rem 0;
+
+  &.total {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: ${colors.primary};
+    border-top: 1px solid ${colors.background};
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+  }
+`;
+
+const CheckoutButton = styled.button`
+  background: ${colors.primary};
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  &:hover {
+    background: ${colors.primaryDark};
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    background: ${colors.primary}50;
+    cursor: not-allowed;
+  }
+`;
+
+const EmptyCart = styled.div`
+  text-align: center;
+  padding: 3rem 0;
+  color: ${colors.textDark};
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+`;
+
+const StyledInput = styled(Input)`
+  margin-bottom: 1rem;
+  background: ${colors.primary}08;
+  border: 1px solid ${colors.primary}15;
+  padding: 0.875rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+
+  &:focus {
+    outline: 2px solid ${colors.primary}40;
+    border-color: transparent;
+  }
+`;
+
+const InputGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  @media screen and (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const SuccessMessage = styled.div`
+  text-align: center;
+  padding: 4rem 2rem;
+
+  h1 {
+    font-size: 2rem;
+    color: ${colors.primary};
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.125rem;
+    color: ${colors.textDark};
+  }
+`;
+
+const CartIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+    />
+  </svg>
+);
+
+const SummaryIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+    />
+  </svg>
+);
+
+const ShippingIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+    />
+  </svg>
+);
+
+const CheckoutIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+    />
+  </svg>
+);
 
 export default function CartPage() {
   const { cartProducts, addProduct, removeProduct, clearCart } =
@@ -143,8 +368,6 @@ export default function CartPage() {
   const [country, setCountry] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [shippingFee, setShippingFee] = useState(null);
-  const [totalSavings, setTotalSavings] = useState(0);
-  const [originalTotal, setOriginalTotal] = useState(0);
 
   useEffect(() => {
     if (cartProducts.length > 0) {
@@ -206,272 +429,175 @@ export default function CartPage() {
     }
   }
 
-  const getBestDiscount = (product, quantity) => {
-    if (!product.discounts?.length) return null;
-
-    // Filter discounts where quantity meets or exceeds threshold
-    // Sort by quantity threshold in descending order to get highest eligible quantity
-    const applicableDiscounts = product.discounts
-      .filter((d) => quantity >= d.quantity)
-      .sort((a, b) => b.quantity - a.quantity);
-
-    // Return the discount with highest quantity requirement
-    return applicableDiscounts[0] || null;
-  };
-
-  const calculateProductTotal = (product, quantity) => {
-    if (!product.discounts?.length) return product.price * quantity;
-
-    const bestDiscount = getBestDiscount(product, quantity);
-    if (!bestDiscount) return product.price * quantity;
-
-    if (bestDiscount.type === "fixed") {
-      return (product.price - bestDiscount.value) * quantity;
-    } else {
-      return product.price * (1 - bestDiscount.value / 100) * quantity;
+  const calculateTotal = () => {
+    let total = 0;
+    for (const product of products) {
+      const quantity = cartProducts.filter((id) => id === product._id).length;
+      total += product.price * quantity;
     }
+    return total;
   };
-
-  useEffect(() => {
-    if (products.length > 0) {
-      let savings = 0;
-      let original = 0;
-
-      products.forEach((product) => {
-        const quantity = cartProducts.filter((id) => id === product._id).length;
-        const originalPrice = product.price * quantity;
-        const discountedPrice = calculateProductTotal(product, quantity);
-
-        original += originalPrice;
-        savings += originalPrice - discountedPrice;
-      });
-
-      setTotalSavings(savings);
-      setOriginalTotal(original);
-    }
-  }, [products, cartProducts]);
-
-  let productsTotal = 0;
-  for (const productId of cartProducts) {
-    const price = products.find((p) => p._id === productId)?.price || 0;
-    productsTotal += price;
-  }
-
-  const total = (productsTotal + parseFloat(shippingFee || 0)).toFixed(2);
 
   if (isSuccess) {
     return (
-      <>
+      <PageWrapper>
         <Header />
-        <Center>
-          <ColumnsWrapper>
-            <Box>
-              <h1>Thanks for your order!</h1>
-              <p>We will email you when your order will be sent.</p>
-            </Box>
-          </ColumnsWrapper>
-        </Center>
-      </>
+        <CartContainer>
+          <RevealWrapper>
+            <SuccessMessage>
+              <h1>Thank you for your order! 🦎</h1>
+              <p>We'll send you an email when your order ships.</p>
+            </SuccessMessage>
+          </RevealWrapper>
+        </CartContainer>
+      </PageWrapper>
     );
   }
 
   return (
-    <>
+    <PageWrapper>
       <Header />
-      <Center>
-        <ColumnsWrapper>
-          <RevealWrapper delay={0}>
-            <Box>
-              <h2>Cart</h2>
-              {!cartProducts?.length && <div>Your cart is empty</div>}
-              {products?.length > 0 && (
-                <>
-                  {totalSavings > 0 && (
-                    <SavingsBox>
-                      <SavingsTitle>Available Savings</SavingsTitle>
-                      <SavingsAmount>
-                        You're saving ${totalSavings.toFixed(2)} on your order
-                      </SavingsAmount>
-                    </SavingsBox>
-                  )}
-                  <Table>
-                    <thead>
-                      <tr>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {products.map((product) => {
-                        const quantity = cartProducts.filter(
-                          (id) => id === product._id
-                        ).length;
-                        const bestDiscount = getBestDiscount(product, quantity);
-                        const discountedTotal = calculateProductTotal(
-                          product,
-                          quantity
-                        );
-                        const originalTotal = product.price * quantity;
-
-                        return (
-                          <tr key={product._id}>
-                            <ProductInfoCell>
-                              <ProductImageBox>
-                                <img src={product.images[0]} alt="" />
-                              </ProductImageBox>
-                              <div>
-                                {product.title}
-                                {bestDiscount && (
-                                  <div
-                                    style={{
-                                      fontSize: "0.8rem",
-                                      color: "#bf4800",
-                                      marginTop: "4px",
-                                    }}
-                                  >
-                                    {bestDiscount.type === "fixed"
-                                      ? `$${bestDiscount.value} off per item`
-                                      : `${bestDiscount.value}% off`}
-                                  </div>
-                                )}
-                              </div>
-                            </ProductInfoCell>
-                            <td>
-                              <StyledButton
-                                onClick={() => lessOfThisProduct(product._id)}
-                              >
-                                -
-                              </StyledButton>
-                              <QuantityLabel>{quantity}</QuantityLabel>
-                              <StyledButton
-                                onClick={() => moreOfThisProduct(product._id)}
-                              >
-                                +
-                              </StyledButton>
-                            </td>
-                            <td>
-                              <div>
-                                ${discountedTotal.toFixed(2)}
-                                {bestDiscount && (
-                                  <OriginalPrice>
-                                    ${originalTotal.toFixed(2)}
-                                  </OriginalPrice>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      <tr className="subtotal">
-                        <td colSpan={2}>Products</td>
-                        <td>
-                          $
-                          {products
-                            .reduce((total, product) => {
-                              return (
-                                total +
-                                calculateProductTotal(
-                                  product,
-                                  cartProducts.filter(
-                                    (id) => id === product._id
-                                  ).length
-                                )
-                              );
-                            }, 0)
-                            .toFixed(2)}
-                          {totalSavings > 0 && (
-                            <OriginalPrice>
-                              ${originalTotal.toFixed(2)}
-                            </OriginalPrice>
-                          )}
-                        </td>
-                      </tr>
-                      <tr className="subtotal">
-                        <td colSpan={2}>Shipping</td>
-                        <td>${parseFloat(shippingFee || 0).toFixed(2)}</td>
-                      </tr>
-                      <tr className="subtotal total">
-                        <td colSpan={2}>Total</td>
-                        <td>
-                          $
-                          {(
-                            products.reduce((total, product) => {
-                              return (
-                                total +
-                                calculateProductTotal(
-                                  product,
-                                  cartProducts.filter(
-                                    (id) => id === product._id
-                                  ).length
-                                )
-                              );
-                            }, 0) + parseFloat(shippingFee || 0)
-                          ).toFixed(2)}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                </>
-              )}
-            </Box>
+      <CartContainer>
+        <CartTitle>
+          <CartIcon />
+          Your Cart
+        </CartTitle>
+        {!cartProducts?.length ? (
+          <RevealWrapper>
+            <EmptyCart>
+              <h2>Your cart is empty</h2>
+              <p>Looks like you haven't added any reptile friends yet!</p>
+              <Button $primary href="/products">
+                Continue Shopping
+              </Button>
+            </EmptyCart>
           </RevealWrapper>
-          {!!cartProducts?.length && (
+        ) : (
+          <CartGrid>
+            <RevealWrapper delay={0}>
+              <CartSection>
+                <SectionTitle>Cart Items</SectionTitle>
+                {products.map((product) => {
+                  const quantity = cartProducts.filter(
+                    (id) => id === product._id
+                  ).length;
+                  return (
+                    <CartItem key={product._id}>
+                      <ProductImage>
+                        <img src={product.images[0]} alt={product.title} />
+                      </ProductImage>
+                      <ProductInfo>
+                        <ProductTitle>{product.title}</ProductTitle>
+                        <ProductPrice>
+                          ${(product.price * quantity).toFixed(2)}
+                        </ProductPrice>
+                        <QuantityControls>
+                          <QuantityButton
+                            onClick={() => lessOfThisProduct(product._id)}
+                          >
+                            −
+                          </QuantityButton>
+                          <Quantity>{quantity}</Quantity>
+                          <QuantityButton
+                            onClick={() => moreOfThisProduct(product._id)}
+                          >
+                            +
+                          </QuantityButton>
+                        </QuantityControls>
+                      </ProductInfo>
+                    </CartItem>
+                  );
+                })}
+              </CartSection>
+            </RevealWrapper>
+
             <RevealWrapper delay={100}>
-              <Box>
-                <h2>Order information</h2>
-                <Input
+              <CartSection>
+                <SectionTitle>
+                  <SummaryIcon />
+                  Order Summary
+                </SectionTitle>
+                <OrderSummary>
+                  <SummaryRow>
+                    <span>Subtotal</span>
+                    <span>${calculateTotal().toFixed(2)}</span>
+                  </SummaryRow>
+                  <SummaryRow>
+                    <span>Shipping</span>
+                    <span>${parseFloat(shippingFee || 0).toFixed(2)}</span>
+                  </SummaryRow>
+                  <SummaryRow className="total">
+                    <span>Total</span>
+                    <span>
+                      $
+                      {(
+                        calculateTotal() + parseFloat(shippingFee || 0)
+                      ).toFixed(2)}
+                    </span>
+                  </SummaryRow>
+                </OrderSummary>
+
+                <SectionTitle style={{ marginTop: "2rem" }}>
+                  <ShippingIcon />
+                  Shipping Information
+                </SectionTitle>
+                <StyledInput
                   type="text"
-                  placeholder="Name"
+                  placeholder="Full Name"
                   value={name}
-                  name="name"
                   onChange={(ev) => setName(ev.target.value)}
                 />
-                <Input
-                  type="text"
+                <StyledInput
+                  type="email"
                   placeholder="Email"
                   value={email}
-                  name="email"
                   onChange={(ev) => setEmail(ev.target.value)}
                 />
-                <CityHolder>
-                  <Input
+                <InputGrid>
+                  <StyledInput
                     type="text"
                     placeholder="City"
                     value={city}
-                    name="city"
                     onChange={(ev) => setCity(ev.target.value)}
                   />
-                  <Input
+                  <StyledInput
                     type="text"
                     placeholder="Postal Code"
                     value={postalCode}
-                    name="postalCode"
                     onChange={(ev) => setPostalCode(ev.target.value)}
                   />
-                </CityHolder>
-                <Input
+                </InputGrid>
+                <StyledInput
                   type="text"
                   placeholder="Street Address"
                   value={streetAddress}
-                  name="streetAddress"
                   onChange={(ev) => setStreetAddress(ev.target.value)}
                 />
-                <Input
+                <StyledInput
                   type="text"
                   placeholder="Country"
                   value={country}
-                  name="country"
                   onChange={(ev) => setCountry(ev.target.value)}
                 />
-                <StyledButton black block onClick={goToPayment}>
-                  Continue to payment
-                </StyledButton>
-              </Box>
+                <CheckoutButton
+                  onClick={goToPayment}
+                  disabled={
+                    !name ||
+                    !email ||
+                    !city ||
+                    !postalCode ||
+                    !streetAddress ||
+                    !country
+                  }
+                >
+                  <CheckoutIcon />
+                  Proceed to Checkout
+                </CheckoutButton>
+              </CartSection>
             </RevealWrapper>
-          )}
-        </ColumnsWrapper>
-      </Center>
-    </>
+          </CartGrid>
+        )}
+      </CartContainer>
+    </PageWrapper>
   );
 }
