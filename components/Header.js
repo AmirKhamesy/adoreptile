@@ -73,19 +73,16 @@ const MobileNav = styled.div`
   flex-direction: column;
   z-index: 1000;
   box-shadow: none;
-  visibility: hidden;
-  opacity: 0;
+  pointer-events: none;
 
   &.mounted {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &.isOpen {
     transform: translateX(0);
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
-    visibility: visible;
-    opacity: 1;
+    pointer-events: all;
   }
 
   @media screen and (min-width: 768px) {
@@ -109,6 +106,19 @@ const MobileNavContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  opacity: 0;
+  transform: translateX(30px);
+  transition: none;
+
+  .mounted & {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition-delay: 0.1s;
+  }
+
+  .isOpen & {
+    opacity: 1;
+    transform: translateX(0);
+  }
 `;
 
 const StyledNav = styled.nav`
@@ -232,7 +242,7 @@ const Overlay = styled.div`
   backdrop-filter: blur(5px);
   transition: none;
   opacity: 0;
-  visibility: hidden;
+  pointer-events: none;
   z-index: 999;
 
   &.mounted {
@@ -241,7 +251,7 @@ const Overlay = styled.div`
 
   &.isOpen {
     opacity: 1;
-    visibility: visible;
+    pointer-events: all;
   }
 
   @media screen and (min-width: 768px) {
