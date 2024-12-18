@@ -1,56 +1,63 @@
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 import Link from "next/link";
-import { useState, useCallback, memo } from "react";
+import { memo, useCallback, useState } from "react";
 import axios from "axios";
+import HeartOutlineIcon from "./icons/HeartOutlineIcon";
+import HeartSolidIcon from "./icons/HeartSolidIcon";
 import FlyingButton from "@/components/FlyingButton";
-import HeartOutlineIcon from "@/components/icons/HeartOutlineIcon";
-import HeartSolidIcon from "@/components/icons/HeartSolidIcon";
 import * as colors from "@/lib/colors";
 
-const fadeIn = keyframes`
-  from { opacity: 0; }
-  to { opacity: 1; }
-`;
-
-const ProductWrapper = styled.article`
-  background-color: ${colors.white};
-  border-radius: 12px;
-  overflow: hidden;
+const ProductWrapper = styled.div`
   position: relative;
+  background: ${colors.white};
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid ${colors.background};
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
 
   @media (hover: hover) {
     &:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 16px ${colors.primary}15;
+      transform: scale(1.02);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+      img {
+        transform: scale(1.1);
+      }
     }
   }
 `;
 
+const StyledLink = styled(Link)`
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+`;
+
 const ImageContainer = styled.div`
+  aspect-ratio: 1;
   position: relative;
-  padding-top: 100%;
-  background: ${colors.background};
   overflow: hidden;
+  background: #f5f5f7;
+  border-radius: 20px 20px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const ProductImage = styled.img`
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  background: ${colors.background};
-
-  ${ProductWrapper}:hover & {
-    transform: scale(1.05);
-  }
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: absolute;
+  top: 0;
+  left: 0;
 `;
 
 const WishlistButton = styled.button`
@@ -99,18 +106,18 @@ const WishlistButton = styled.button`
 `;
 
 const ProductInfoBox = styled.div`
-  padding: 16px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+  flex-grow: 1;
   background: ${colors.white};
 `;
 
-const Title = styled(Link)`
-  font-size: 0.9rem;
+const Title = styled.div`
+  font-size: 1rem;
   font-weight: 500;
-  color: ${colors.textDark};
-  text-decoration: none;
+  color: #1d1d1f;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -118,16 +125,10 @@ const Title = styled(Link)`
   line-height: 1.4;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   transition: color 0.2s ease;
-  min-height: 2.5em;
-
-  @media (hover: hover) {
-    &:hover {
-      color: ${colors.primary};
-    }
-  }
+  min-height: 2.8em;
 
   @media screen and (min-width: 1024px) {
-    font-size: 0.95rem;
+    font-size: 1.0625rem;
   }
 `;
 
@@ -136,13 +137,13 @@ const PriceRow = styled.div`
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin-top: 4px;
+  margin-top: auto;
 `;
 
 const Price = styled.div`
-  font-size: 0.95rem;
+  font-size: 1.0625rem;
   font-weight: 600;
-  color: ${colors.textDark};
+  color: #1d1d1f;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   &::before {
@@ -172,6 +173,7 @@ const AddToCartButton = styled(FlyingButton)`
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  z-index: 2;
 
   svg {
     width: 16px;
@@ -218,7 +220,7 @@ const Badge = styled.span`
   background: ${colors.primary}15;
   color: ${colors.primary};
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 500;
   backdrop-filter: blur(8px);
@@ -234,9 +236,12 @@ const ProductBox = memo(function ProductBox({
   images,
   wished = false,
   onRemoveFromWishlist = () => {},
-  isNew,
+  createdAt,
 }) {
   const [isWished, setIsWished] = useState(wished);
+  const isNewProduct =
+    createdAt &&
+    new Date(createdAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
   const handleWishlist = useCallback(
     (ev) => {
@@ -261,29 +266,36 @@ const ProductBox = memo(function ProductBox({
 
   return (
     <ProductWrapper>
-      {isNew && <Badge>New</Badge>}
-      <ImageContainer>
-        <WishlistButton
-          wished={isWished}
-          onClick={handleWishlist}
-          aria-label={isWished ? "Remove from wishlist" : "Add to wishlist"}
-          type="button"
-        >
-          {isWished ? <HeartSolidIcon /> : <HeartOutlineIcon />}
-        </WishlistButton>
-        <ProductImage src={images?.[0]} alt={title} loading="lazy" />
-      </ImageContainer>
-      <ProductInfoBox>
-        <Title href={`/product/${_id}`} title={title}>
-          {title}
-        </Title>
-        <PriceRow>
-          <Price>{formattedPrice}</Price>
-          <AddToCartButton _id={_id} src={images?.[0]}>
-            Add to Cart
-          </AddToCartButton>
-        </PriceRow>
-      </ProductInfoBox>
+      <StyledLink href={`/product/${_id}`}>
+        {isNewProduct && <Badge>New</Badge>}
+        <ImageContainer>
+          <WishlistButton
+            wished={isWished}
+            onClick={handleWishlist}
+            aria-label={isWished ? "Remove from wishlist" : "Add to wishlist"}
+            type="button"
+          >
+            {isWished ? <HeartSolidIcon /> : <HeartOutlineIcon />}
+          </WishlistButton>
+          <ProductImage src={images?.[0]} alt={title} loading="lazy" />
+        </ImageContainer>
+        <ProductInfoBox>
+          <Title>{title}</Title>
+          <PriceRow>
+            <Price>{formattedPrice}</Price>
+            <AddToCartButton
+              _id={_id}
+              src={images?.[0]}
+              onClick={(ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+              }}
+            >
+              Add to Cart
+            </AddToCartButton>
+          </PriceRow>
+        </ProductInfoBox>
+      </StyledLink>
     </ProductWrapper>
   );
 });

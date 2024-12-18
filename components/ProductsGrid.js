@@ -54,11 +54,11 @@ export default function ProductsGrid({ products, wishedProducts = [] }) {
   if (!products?.length) {
     return (
       <EmptyState>
-        <h3>No Products Found</h3>
-        <p>
+        <EmptyStateTitle>No Products Found</EmptyStateTitle>
+        <EmptyStateText>
           We couldn't find any products matching your criteria. Please try
           adjusting your filters or check back later.
-        </p>
+        </EmptyStateText>
       </EmptyState>
     );
   }
@@ -69,14 +69,16 @@ export default function ProductsGrid({ products, wishedProducts = [] }) {
         <RevealWrapper
           key={product._id}
           delay={index * 50}
-          duration={600}
+          duration={800}
           origin="bottom"
-          distance="20px"
+          distance="30px"
+          reset={false}
+          mobile={false}
         >
           <ProductBox
             {...product}
             wished={wishedProducts.includes(product._id)}
-            isNew={index < 3} // Mark first 3 products as new
+            createdAt={product.createdAt}
           />
         </RevealWrapper>
       ))}
