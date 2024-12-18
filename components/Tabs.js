@@ -1,27 +1,137 @@
 import styled from "styled-components";
+import * as colors from "@/lib/colors";
 
 const StyledTabs = styled.div`
   display: flex;
-  gap: 20px;
+  gap: 0;
   margin-bottom: 20px;
+  background: #f5f5f7;
+  padding: 4px;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    background: ${colors.white};
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    height: calc(100% - 8px);
+    top: 4px;
+    left: ${(props) => {
+      const tabWidth = 100 / props.tabCount;
+      const activeIndex = props.tabs.indexOf(props.active);
+      return `calc(${tabWidth * activeIndex}% + 4px)`;
+    }};
+    width: ${(props) => `calc(${100 / props.tabCount}% - 8px)`};
+    z-index: 0;
+  }
 `;
-const StyledTab = styled.span`
-  font-size: 1.5rem;
+
+const StyledTab = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  padding: 10px 16px;
   cursor: pointer;
-  ${(props) =>
-    props.active
-      ? `
-    color:black;
-    border-bottom: 2px solid black;
-  `
-      : `
-    color:#999;
-  `}
+  border: none;
+  background: transparent;
+  color: ${(props) => (props.active ? colors.primary : "#86868b")};
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex: 1;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    opacity: ${(props) => (props.active ? 1 : 0.7)};
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &:hover {
+    color: ${(props) => (props.active ? colors.primary : "#1d1d1f")};
+    svg {
+      opacity: 1;
+    }
+  }
+
+  @media screen and (max-width: 768px) {
+    font-size: 0.875rem;
+    padding: 8px 12px;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
 `;
 
 export default function Tabs({ tabs, active, onChange }) {
+  const getIcon = (tabName) => {
+    switch (tabName) {
+      case "Orders":
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+            />
+          </svg>
+        );
+      case "Wishlist":
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
+            />
+          </svg>
+        );
+      case "Profile":
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+            />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <StyledTabs>
+    <StyledTabs tabCount={tabs.length} tabs={tabs} active={active}>
       {tabs.map((tabName) => (
         <StyledTab
           key={tabName}
@@ -30,6 +140,7 @@ export default function Tabs({ tabs, active, onChange }) {
           }}
           active={tabName === active}
         >
+          {getIcon(tabName)}
           {tabName}
         </StyledTab>
       ))}
