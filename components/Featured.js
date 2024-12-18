@@ -30,7 +30,7 @@ const scaleIn = keyframes`
 
 const Bg = styled.div`
   color: ${colors.textDark};
-  padding: 120px 20px 80px;
+  padding: 50px 20px 80px;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow: hidden;

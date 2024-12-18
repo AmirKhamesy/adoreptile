@@ -10,6 +10,9 @@ export default function Document() {
             margin: 0;
             padding: 0;
           }
+          #__next {
+            padding-top: 70px; /* Height of the header */
+          }
         `}</style>
       </Head>
       <body>
