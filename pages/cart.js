@@ -9,23 +9,11 @@ import Input from "@/components/Input";
 import { RevealWrapper } from "next-reveal";
 import { useSession } from "next-auth/react";
 import * as colors from "@/lib/colors";
+import Link from "next/link";
 
 const PageWrapper = styled.div`
   min-height: 100vh;
-  padding-top: calc(env(safe-area-inset-top, 0));
-
-  &:before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: env(safe-area-inset-top, 0);
-    background: ${colors.white}dd;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    z-index: 999;
-  }
+  background: ${colors.primary}08;
 `;
 
 const CartContainer = styled.div`
@@ -265,6 +253,26 @@ const EmptyCart = styled.div`
     font-size: 1rem;
     margin-bottom: 2rem;
   }
+
+  a {
+    background: ${colors.primary};
+    color: white;
+    border: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: ${colors.primaryDark};
+      transform: translateY(-1px);
+    }
+  }
 `;
 
 const StyledInput = styled(Input)`
@@ -483,9 +491,9 @@ export default function CartPage() {
             <EmptyCart>
               <h2>Your cart is empty</h2>
               <p>Looks like you haven't added any reptile friends yet!</p>
-              <Button $primary href="/products">
+              <Link href="/products" className="continue-shopping">
                 Continue Shopping
-              </Button>
+              </Link>
             </EmptyCart>
           </RevealWrapper>
         ) : (
