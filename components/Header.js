@@ -68,17 +68,24 @@ const MobileNav = styled.div`
   max-width: 380px;
   background: ${colors.white};
   transform: translateX(100%);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: none;
   display: flex;
   flex-direction: column;
   z-index: 1000;
   box-shadow: none;
   visibility: hidden;
+  opacity: 0;
+
+  &.mounted {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
   &.isOpen {
     transform: translateX(0);
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
     visibility: visible;
+    opacity: 1;
   }
 
   @media screen and (min-width: 768px) {
@@ -223,10 +230,14 @@ const Overlay = styled.div`
   bottom: 0;
   background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(5px);
+  transition: none;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 999;
+
+  &.mounted {
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
   &.isOpen {
     opacity: 1;
@@ -246,6 +257,11 @@ export default function Header() {
   const { cartProducts } = useContext(CartContext);
   const [mobileNavActive, setMobileNavActive] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -303,7 +319,11 @@ export default function Header() {
         </Wrapper>
       </StyledHeader>
 
-      <MobileNav className={mobileNavActive ? "isOpen" : ""}>
+      <MobileNav
+        className={`${isMounted ? "mounted" : ""} ${
+          mobileNavActive ? "isOpen" : ""
+        }`}
+      >
         <MobileNavHeader>
           <Logo href={"/"} onClick={closeMobileNav}>
             Adoreptile
@@ -335,7 +355,9 @@ export default function Header() {
       </MobileNav>
 
       <Overlay
-        className={mobileNavActive ? "isOpen" : ""}
+        className={`${isMounted ? "mounted" : ""} ${
+          mobileNavActive ? "isOpen" : ""
+        }`}
         onClick={closeMobileNav}
       />
     </>
