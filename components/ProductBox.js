@@ -31,12 +31,12 @@ const ProductWrapper = styled.div`
   }
 `;
 
-const StyledLink = styled(Link)`
+const ProductLink = styled(Link)`
   text-decoration: none;
   color: inherit;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
 `;
 
 const ImageContainer = styled.div`
@@ -112,6 +112,7 @@ const ProductInfoBox = styled.div`
   gap: 12px;
   flex-grow: 1;
   background: ${colors.white};
+  position: relative;
 `;
 
 const Title = styled.div`
@@ -138,6 +139,8 @@ const PriceRow = styled.div`
   align-items: center;
   gap: 12px;
   margin-top: auto;
+  position: relative;
+  z-index: 1;
 `;
 
 const Price = styled.div`
@@ -266,36 +269,31 @@ const ProductBox = memo(function ProductBox({
 
   return (
     <ProductWrapper>
-      <StyledLink href={`/product/${_id}`}>
-        {isNewProduct && <Badge>New</Badge>}
+      {isNewProduct && <Badge>New</Badge>}
+      <WishlistButton
+        wished={isWished}
+        onClick={handleWishlist}
+        aria-label={isWished ? "Remove from wishlist" : "Add to wishlist"}
+        type="button"
+      >
+        {isWished ? <HeartSolidIcon /> : <HeartOutlineIcon />}
+      </WishlistButton>
+      <ProductLink href={`/product/${_id}`}>
         <ImageContainer>
-          <WishlistButton
-            wished={isWished}
-            onClick={handleWishlist}
-            aria-label={isWished ? "Remove from wishlist" : "Add to wishlist"}
-            type="button"
-          >
-            {isWished ? <HeartSolidIcon /> : <HeartOutlineIcon />}
-          </WishlistButton>
           <ProductImage src={images?.[0]} alt={title} loading="lazy" />
         </ImageContainer>
         <ProductInfoBox>
           <Title>{title}</Title>
-          <PriceRow>
-            <Price>{formattedPrice}</Price>
-            <AddToCartButton
-              _id={_id}
-              src={images?.[0]}
-              onClick={(ev) => {
-                ev.preventDefault();
-                ev.stopPropagation();
-              }}
-            >
-              Add to Cart
-            </AddToCartButton>
-          </PriceRow>
         </ProductInfoBox>
-      </StyledLink>
+      </ProductLink>
+      <div style={{ padding: "0 20px 20px" }}>
+        <PriceRow>
+          <Price>{formattedPrice}</Price>
+          <AddToCartButton _id={_id} src={images?.[0]}>
+            Add to Cart
+          </AddToCartButton>
+        </PriceRow>
+      </div>
     </ProductWrapper>
   );
 });

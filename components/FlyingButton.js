@@ -90,10 +90,13 @@ const FlyingButtonWrapper = styled.div`
 export default function FlyingButton(props) {
   const { addProduct, addMultipleProducts } = useContext(CartContext);
   const imgRef = useRef();
+  const timeoutRef = useRef();
 
   function sendImageToCart(ev) {
     ev.preventDefault();
-    const rect = ev.target.getBoundingClientRect();
+    ev.stopPropagation();
+
+    const rect = ev.currentTarget.getBoundingClientRect();
     const targetRect = document
       .querySelector(".cart-count")
       ?.getBoundingClientRect() || {
@@ -101,15 +104,19 @@ export default function FlyingButton(props) {
       right: window.innerWidth - 20,
     };
 
-    imgRef.current.style.display = "block";
-    imgRef.current.style.left = `${ev.clientX - 50}px`;
-    imgRef.current.style.top = `${ev.clientY - 50}px`;
-    imgRef.current.classList.add("flying");
+    if (imgRef.current) {
+      imgRef.current.style.display = "block";
+      imgRef.current.style.left = `${ev.clientX - 50}px`;
+      imgRef.current.style.top = `${ev.clientY - 50}px`;
+      imgRef.current.classList.add("flying");
 
-    setTimeout(() => {
-      imgRef.current.style.display = "none";
-      imgRef.current.classList.remove("flying");
-    }, 1000);
+      timeoutRef.current = setTimeout(() => {
+        if (imgRef.current) {
+          imgRef.current.style.display = "none";
+          imgRef.current.classList.remove("flying");
+        }
+      }, 1000);
+    }
 
     const quantity = props.quantity || 1;
     addMultipleProducts(props._id, quantity);
@@ -123,13 +130,23 @@ export default function FlyingButton(props) {
       }
     }, 100);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, []);
 
   return (
     <FlyingButtonWrapper white={props.white} main={props.main}>
       <img src={props.src} alt="" ref={imgRef} />
-      <button onClick={sendImageToCart} {...props} />
+      <button
+        onClick={sendImageToCart}
+        onMouseDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        {...props}
+      />
     </FlyingButtonWrapper>
   );
 }
