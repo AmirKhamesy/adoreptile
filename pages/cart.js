@@ -12,15 +12,31 @@ import * as colors from "@/lib/colors";
 
 const PageWrapper = styled.div`
   min-height: 100vh;
+  padding-top: calc(env(safe-area-inset-top, 0));
+
+  &:before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 0);
+    background: ${colors.white}dd;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 999;
+  }
 `;
 
 const CartContainer = styled.div`
   max-width: 1000px;
   margin: 0 auto;
   padding: 2rem 1rem;
+  padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0));
 
   @media screen and (max-width: 768px) {
     padding: 1rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
   }
 `;
 

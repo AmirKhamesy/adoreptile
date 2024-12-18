@@ -20,6 +20,7 @@ const StyledHeader = styled.header`
   border-bottom: 1px solid ${colors.primary}22;
   opacity: 0;
   transform: translateY(-10px);
+  padding-top: env(safe-area-inset-top, 0);
 
   &.mounted {
     opacity: 1;
