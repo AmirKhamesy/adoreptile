@@ -16,11 +16,7 @@ const fadeIn = keyframes`
 `;
 
 const NewArrivalsSection = styled.section`
-  background: linear-gradient(
-    180deg,
-    ${colors.background}22 0%,
-    ${colors.white} 100%
-  );
+  background: ${colors.background}08;
   padding: 80px 0;
   position: relative;
   overflow: hidden;

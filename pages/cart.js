@@ -13,7 +13,8 @@ import Link from "next/link";
 
 const PageWrapper = styled.div`
   min-height: 100vh;
-  background: ${colors.primary}08;
+  background: ${colors.background}08;
+
 `;
 
 const CartContainer = styled.div`
