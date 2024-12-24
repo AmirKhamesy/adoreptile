@@ -26,12 +26,25 @@ const PageContainer = styled.div`
   }
 `;
 
+const WhiteBox = styled.div`
+  background-color: ${colors.white};
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 4px 24px ${colors.primary}10;
+  margin-bottom: 32px;
+
+  @media screen and (max-width: 768px) {
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+`;
+
 const TopSection = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 24px;
-  margin-bottom: 48px;
+  margin-bottom: 32px;
   opacity: 0;
   transform: translateY(20px);
   animation: fadeIn 0.8s ease-out forwards;
@@ -229,87 +242,91 @@ export default function ProductsPage({ products, wishedProducts, categories }) {
       <Header />
       <PageContainer>
         <Center>
-          <TopSection>
-            <PageTitle>Our Products</PageTitle>
-            <Subtitle>
-              Explore our collection of premium reptile supplies, carefully
-              curated for your scaly friends.
-            </Subtitle>
-            <SearchWrapper>
-              <SearchInput
-                value={phrase}
-                onChange={(ev) => setPhrase(ev.target.value)}
-                placeholder="Search products..."
-              />
-            </SearchWrapper>
-          </TopSection>
+          <WhiteBox>
+            <TopSection>
+              <PageTitle>Our Products</PageTitle>
+              <Subtitle>
+                Explore our collection of premium reptile supplies, carefully
+                curated for your scaly friends.
+              </Subtitle>
+              <SearchWrapper>
+                <SearchInput
+                  value={phrase}
+                  onChange={(ev) => setPhrase(ev.target.value)}
+                  placeholder="Search products..."
+                />
+              </SearchWrapper>
+            </TopSection>
 
-          <FiltersSection>
-            <FiltersWrapper>
-              <FilterSelect
-                onChange={handleCategorySelect}
-                value={selectedCategory}
-              >
-                <option value="">All Categories</option>
-                {categories.map((category) => (
-                  <option key={category._id} value={category._id}>
-                    {category.name}
-                  </option>
-                ))}
-              </FilterSelect>
-
-              {selectedCategory &&
-                categories
-                  .find((c) => c._id === selectedCategory)
-                  ?.properties.map((prop) => (
-                    <FilterSelect
-                      key={prop.name}
-                      onChange={(ev) =>
-                        handleFilterChange(prop.name, ev.target.value)
-                      }
-                    >
-                      <option value="all">{prop.name}: All</option>
-                      {prop.values.map((val) => (
-                        <option key={val} value={val}>
-                          {val}
-                        </option>
-                      ))}
-                    </FilterSelect>
+            <FiltersSection>
+              <FiltersWrapper>
+                <FilterSelect
+                  onChange={handleCategorySelect}
+                  value={selectedCategory}
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category.name}
+                    </option>
                   ))}
+                </FilterSelect>
 
-              <FilterSelect
-                value={sort}
-                onChange={(ev) => {
-                  setSort(ev.target.value);
-                  setFiltersChanged(true);
-                }}
-              >
-                <option value="_id-desc">Newest First</option>
-                <option value="_id-asc">Oldest First</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-              </FilterSelect>
-            </FiltersWrapper>
-          </FiltersSection>
+                {selectedCategory &&
+                  categories
+                    .find((c) => c._id === selectedCategory)
+                    ?.properties.map((prop) => (
+                      <FilterSelect
+                        key={prop.name}
+                        onChange={(ev) =>
+                          handleFilterChange(prop.name, ev.target.value)
+                        }
+                      >
+                        <option value="all">{prop.name}: All</option>
+                        {prop.values.map((val) => (
+                          <option key={val} value={val}>
+                            {val}
+                          </option>
+                        ))}
+                      </FilterSelect>
+                    ))}
 
-          <ResultsSection>
-            {isLoading ? (
-              <LoadingWrapper>
-                <Spinner />
-              </LoadingWrapper>
-            ) : (
-              <>
-                {phrase !== "" && filteredProducts.length === 0 ? (
-                  <NoResults>No products found for "{phrase}"</NoResults>
-                ) : (
-                  <ProductsGrid
-                    products={filteredProducts}
-                    wishedProducts={wishedProducts}
-                  />
-                )}
-              </>
-            )}
-          </ResultsSection>
+                <FilterSelect
+                  value={sort}
+                  onChange={(ev) => {
+                    setSort(ev.target.value);
+                    setFiltersChanged(true);
+                  }}
+                >
+                  <option value="_id-desc">Newest First</option>
+                  <option value="_id-asc">Oldest First</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                </FilterSelect>
+              </FiltersWrapper>
+            </FiltersSection>
+          </WhiteBox>
+
+          <WhiteBox>
+            <ResultsSection>
+              {isLoading ? (
+                <LoadingWrapper>
+                  <Spinner />
+                </LoadingWrapper>
+              ) : (
+                <>
+                  {phrase !== "" && filteredProducts.length === 0 ? (
+                    <NoResults>No products found for "{phrase}"</NoResults>
+                  ) : (
+                    <ProductsGrid
+                      products={filteredProducts}
+                      wishedProducts={wishedProducts}
+                    />
+                  )}
+                </>
+              )}
+            </ResultsSection>
+          </WhiteBox>
         </Center>
       </PageContainer>
     </>
