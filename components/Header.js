@@ -8,6 +8,7 @@ import Center from "@/components/Center";
 import * as colors from "@/lib/colors";
 import { debounce } from "lodash";
 import axios from "axios";
+import CartIconMobile from "@/components/icons/CartIconMobile";
 
 const StyledHeader = styled.header`
   background: ${colors.white}dd;
@@ -524,6 +525,33 @@ const CloseSearchButton = styled(CloseButton)`
   }
 `;
 
+const CartBubble = styled.span`
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: ${colors.primary}22;
+  color: ${colors.primary};
+  font-size: 0.6875rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid ${colors.primary}15;
+  min-width: 1rem;
+  height: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const MobileCartButton = styled(NavButton)`
+  @media screen and (min-width: 768px) {
+    display: none;
+  }
+`;
+
 export default function Header() {
   const { cartProducts } = useContext(CartContext);
   const [mobileNavActive, setMobileNavActive] = useState(false);
@@ -638,6 +666,15 @@ export default function Header() {
             >
               <SearchIcon />
             </NavButton>
+            <MobileCartButton
+              onClick={() => (window.location.href = "/cart")}
+              aria-label="View cart"
+            >
+              <CartIconMobile />
+              {cartProducts.length > 0 && (
+                <CartBubble>{cartProducts.length}</CartBubble>
+              )}
+            </MobileCartButton>
             <NavButton
               onClick={() => setMobileNavActive((prev) => !prev)}
               aria-label="Toggle menu"
@@ -686,12 +723,7 @@ export default function Header() {
           <NavLink href={"/account"} onClick={closeMobileNav}>
             Account
           </NavLink>
-          <NavLink href={"/cart"} onClick={closeMobileNav}>
-            Cart{" "}
-            {cartProducts.length > 0 && (
-              <CartCount>{cartProducts.length}</CartCount>
-            )}
-          </NavLink>
+
         </MobileNavContent>
       </MobileNav>
 
