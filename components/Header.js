@@ -282,6 +282,24 @@ const Overlay = styled.div`
 
 const CloseButton = styled(NavButton)`
   color: ${colors.textDark};
+  width: 44px;
+  height: 44px;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.08);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
 `;
 
 const SearchContainer = styled.div`
@@ -625,7 +643,19 @@ export default function Header() {
             Adoreptile
           </Logo>
           <CloseButton onClick={closeMobileNav} aria-label="Close menu">
-            ✕
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
           </CloseButton>
         </MobileNavHeader>
         <MobileNavContent>
