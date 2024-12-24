@@ -141,9 +141,29 @@ const ProductTitle = styled.h3`
 `;
 
 const ProductPrice = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   font-size: 1.125rem;
   font-weight: 600;
   color: ${colors.primary};
+
+  .original-price {
+    font-size: 0.875rem;
+    text-decoration: line-through;
+    color: #86868b;
+    font-weight: 400;
+  }
+`;
+
+const DiscountBadge = styled.span`
+  background: #f5f5f7;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #1d1d1f;
+  margin-left: 8px;
 `;
 
 const QuantityControls = styled.div`
@@ -457,7 +477,25 @@ export default function CartPage() {
     let total = 0;
     for (const product of products) {
       const quantity = cartProducts.filter((id) => id === product._id).length;
-      total += product.price * quantity;
+      if (!product.discounts?.length) {
+        total += product.price * quantity;
+        continue;
+      }
+
+      // Find best applicable discount
+      const applicableDiscounts = product.discounts
+        .filter((d) => quantity >= d.quantity)
+        .sort((a, b) => b.quantity - a.quantity);
+
+      const bestDiscount = applicableDiscounts[0];
+
+      if (!bestDiscount) {
+        total += product.price * quantity;
+      } else if (bestDiscount.type === "fixed") {
+        total += (product.price - bestDiscount.value) * quantity;
+      } else {
+        total += product.price * (1 - bestDiscount.value / 100) * quantity;
+      }
     }
     return total;
   };
@@ -513,7 +551,53 @@ export default function CartPage() {
                       <ProductInfo>
                         <ProductTitle>{product.title}</ProductTitle>
                         <ProductPrice>
-                          ${(product.price * quantity).toFixed(2)}
+                          {(() => {
+                            const quantity = cartProducts.filter(
+                              (id) => id === product._id
+                            ).length;
+
+                            if (!product.discounts?.length) {
+                              return `$${(product.price * quantity).toFixed(
+                                2
+                              )}`;
+                            }
+
+                            const applicableDiscounts = product.discounts
+                              .filter((d) => quantity >= d.quantity)
+                              .sort((a, b) => b.quantity - a.quantity);
+
+                            const bestDiscount = applicableDiscounts[0];
+
+                            if (!bestDiscount) {
+                              return `$${(product.price * quantity).toFixed(
+                                2
+                              )}`;
+                            }
+
+                            const originalPrice = product.price * quantity;
+                            const discountedPrice =
+                              bestDiscount.type === "fixed"
+                                ? (product.price - bestDiscount.value) *
+                                  quantity
+                                : product.price *
+                                  (1 - bestDiscount.value / 100) *
+                                  quantity;
+
+                            const discountText =
+                              bestDiscount.type === "fixed"
+                                ? `-$${bestDiscount.value}`
+                                : `-${bestDiscount.value}%`;
+
+                            return (
+                              <>
+                                ${discountedPrice.toFixed(2)}
+                                <span className="original-price">
+                                  ${originalPrice.toFixed(2)}
+                                </span>
+                                <DiscountBadge>{discountText}</DiscountBadge>
+                              </>
+                            );
+                          })()}
                         </ProductPrice>
                         <QuantityControls>
                           <QuantityButton
