@@ -18,10 +18,11 @@ import * as colors from "@/lib/colors";
 
 const PageContainer = styled.div`
   min-height: 100vh;
+  background: ${colors.background}08;
   padding: 40px 0;
 
   @media screen and (max-width: 768px) {
-    padding: 20px 0;
+    padding: 24px 0;
   }
 `;
 
@@ -30,7 +31,7 @@ const TopSection = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 24px;
-  margin-bottom: 40px;
+  margin-bottom: 48px;
   opacity: 0;
   transform: translateY(20px);
   animation: fadeIn 0.8s ease-out forwards;
@@ -65,7 +66,7 @@ const Subtitle = styled.p`
 
 const SearchWrapper = styled.div`
   width: 100%;
-  max-width: 680px;
+  max-width: 600px;
   margin: 0 auto;
   position: relative;
 `;
@@ -93,7 +94,7 @@ const SearchInput = styled(Input)`
 `;
 
 const FiltersSection = styled.div`
-  margin: 20px 0 40px;
+  margin-bottom: 40px;
   opacity: 0;
   transform: translateY(20px);
   animation: fadeIn 0.8s ease-out 0.2s forwards;
@@ -104,7 +105,6 @@ const FiltersWrapper = styled.div`
   gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
-  padding: 0 20px;
 
   @media screen and (max-width: 768px) {
     flex-direction: column;
@@ -126,7 +126,7 @@ const FilterSelect = styled.select`
   background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h10L5 6z' fill='%23000'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 16px center;
-  min-width: 200px;
+  min-width: 180px;
 
   &:hover {
     background-color: rgba(0, 0, 0, 0.08);
@@ -140,7 +140,6 @@ const FilterSelect = styled.select`
   @media screen and (max-width: 768px) {
     width: 100%;
     min-width: unset;
-    max-width: 100%;
   }
 `;
 

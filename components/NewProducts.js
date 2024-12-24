@@ -30,20 +30,10 @@ const NewArrivalsSection = styled.section`
   }
 `;
 
-const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-
-  @media screen and (max-width: 768px) {
-    padding: 0 16px;
-  }
-`;
-
 const HeaderWrapper = styled.div`
   text-align: center;
   max-width: 600px;
-  margin: 0 auto 60px;
+  margin: 0 auto 48px;
   animation: ${fadeIn} 1s ease-out both;
 
   @media screen and (max-width: 768px) {
@@ -67,22 +57,11 @@ const Subtitle = styled.p`
   line-height: 1.5;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  padding: 0 20px;
-`;
-
-const GridContainer = styled.div`
-  margin: 0 auto;
-  max-width: 1600px;
-  padding: 0 20px;
-
-  @media screen and (max-width: 768px) {
-    padding: 0 16px;
-  }
 `;
 
 const ButtonWrapper = styled.div`
   text-align: center;
-  margin-top: 60px;
+  margin-top: 48px;
   animation: ${fadeIn} 1s ease-out 0.6s both;
 `;
 
@@ -114,7 +93,7 @@ const ViewAllButton = styled.a`
 export default function NewProducts({ products, wishedProducts }) {
   return (
     <NewArrivalsSection>
-      <Container>
+      <Center>
         <HeaderWrapper>
           <RevealWrapper origin="top">
             <Title>New Arrivals</Title>
@@ -125,16 +104,14 @@ export default function NewProducts({ products, wishedProducts }) {
           </RevealWrapper>
         </HeaderWrapper>
 
-        <GridContainer>
-          <RevealWrapper origin="bottom" delay={200}>
-            <ProductsGrid products={products} wishedProducts={wishedProducts} />
-          </RevealWrapper>
-        </GridContainer>
+        <RevealWrapper origin="bottom" delay={200}>
+          <ProductsGrid products={products} wishedProducts={wishedProducts} />
+        </RevealWrapper>
 
         <ButtonWrapper>
           <ViewAllButton href="/products">Shop New Arrivals</ViewAllButton>
         </ButtonWrapper>
-      </Container>
+      </Center>
     </NewArrivalsSection>
   );
 }
