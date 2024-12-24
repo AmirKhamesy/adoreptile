@@ -114,32 +114,56 @@ const FiltersSection = styled.div`
 `;
 
 const FiltersWrapper = styled.div`
+  background: ${colors.white};
+  border-radius: 20px;
+  padding: 24px;
   display: flex;
-  gap: 12px;
+  gap: 16px;
   flex-wrap: wrap;
   justify-content: center;
 
   @media screen and (max-width: 768px) {
     flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+  }
+`;
+
+const FilterGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  @media screen and (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
     gap: 8px;
   }
+`;
+
+const FilterLabel = styled.span`
+  font-size: 1rem;
+  color: #424245;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  white-space: nowrap;
 `;
 
 const FilterSelect = styled.select`
   appearance: none;
   background: rgba(0, 0, 0, 0.05);
   border: none;
-  border-radius: 20px;
+  border-radius: 980px;
   padding: 10px 36px 10px 16px;
   font-size: 0.9375rem;
   color: #1d1d1f;
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-width: 180px;
   background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h10L5 6z' fill='%23000'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 16px center;
-  min-width: 180px;
 
   &:hover {
     background-color: rgba(0, 0, 0, 0.08);
@@ -152,7 +176,6 @@ const FilterSelect = styled.select`
 
   @media screen and (max-width: 768px) {
     width: 100%;
-    min-width: unset;
   }
 `;
 
@@ -260,49 +283,57 @@ export default function ProductsPage({ products, wishedProducts, categories }) {
 
             <FiltersSection>
               <FiltersWrapper>
-                <FilterSelect
-                  onChange={handleCategorySelect}
-                  value={selectedCategory}
-                >
-                  <option value="">All Categories</option>
-                  {categories.map((category) => (
-                    <option key={category._id} value={category._id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </FilterSelect>
+                <FilterGroup>
+                  <FilterLabel>Category:</FilterLabel>
+                  <FilterSelect
+                    onChange={handleCategorySelect}
+                    value={selectedCategory}
+                  >
+                    <option value="">All Categories</option>
+                    {categories.map((category) => (
+                      <option key={category._id} value={category._id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </FilterSelect>
+                </FilterGroup>
 
                 {selectedCategory &&
                   categories
                     .find((c) => c._id === selectedCategory)
                     ?.properties.map((prop) => (
-                      <FilterSelect
-                        key={prop.name}
-                        onChange={(ev) =>
-                          handleFilterChange(prop.name, ev.target.value)
-                        }
-                      >
-                        <option value="all">{prop.name}: All</option>
-                        {prop.values.map((val) => (
-                          <option key={val} value={val}>
-                            {val}
-                          </option>
-                        ))}
-                      </FilterSelect>
+                      <FilterGroup key={prop.name}>
+                        <FilterLabel>{prop.name}:</FilterLabel>
+                        <FilterSelect
+                          onChange={(ev) =>
+                            handleFilterChange(prop.name, ev.target.value)
+                          }
+                        >
+                          <option value="all">All {prop.name}s</option>
+                          {prop.values.map((val) => (
+                            <option key={val} value={val}>
+                              {val}
+                            </option>
+                          ))}
+                        </FilterSelect>
+                      </FilterGroup>
                     ))}
 
-                <FilterSelect
-                  value={sort}
-                  onChange={(ev) => {
-                    setSort(ev.target.value);
-                    setFiltersChanged(true);
-                  }}
-                >
-                  <option value="_id-desc">Newest First</option>
-                  <option value="_id-asc">Oldest First</option>
-                  <option value="price-asc">Price: Low to High</option>
-                  <option value="price-desc">Price: High to Low</option>
-                </FilterSelect>
+                <FilterGroup>
+                  <FilterLabel>Sort by:</FilterLabel>
+                  <FilterSelect
+                    value={sort}
+                    onChange={(ev) => {
+                      setSort(ev.target.value);
+                      setFiltersChanged(true);
+                    }}
+                  >
+                    <option value="_id-desc">Newest First</option>
+                    <option value="_id-asc">Oldest First</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                  </FilterSelect>
+                </FilterGroup>
               </FiltersWrapper>
             </FiltersSection>
           </WhiteBox>
