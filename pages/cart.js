@@ -14,7 +14,6 @@ import Link from "next/link";
 const PageWrapper = styled.div`
   min-height: 100vh;
   background: ${colors.background}08;
-
 `;
 
 const CartContainer = styled.div`
@@ -109,12 +108,18 @@ const CartItem = styled.div`
   }
 `;
 
-const ProductImage = styled.div`
+const ProductImage = styled(Link)`
   width: 100px;
   height: 100px;
   border-radius: 12px;
   overflow: hidden;
   background: ${colors.background};
+  display: block;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
 
   img {
     width: 100%;
@@ -134,11 +139,17 @@ const ProductInfo = styled.div`
   gap: 0.5rem;
 `;
 
-const ProductTitle = styled.h3`
+const ProductTitle = styled(Link)`
   font-size: 1rem;
   font-weight: 500;
   color: ${colors.textDark};
   margin: 0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: ${colors.primary};
+  }
 `;
 
 const ProductPrice = styled.div`
@@ -546,11 +557,13 @@ export default function CartPage() {
                   ).length;
                   return (
                     <CartItem key={product._id}>
-                      <ProductImage>
+                      <ProductImage href={`/product/${product._id}`}>
                         <img src={product.images[0]} alt={product.title} />
                       </ProductImage>
                       <ProductInfo>
-                        <ProductTitle>{product.title}</ProductTitle>
+                        <ProductTitle href={`/product/${product._id}`}>
+                          {product.title}
+                        </ProductTitle>
                         <ProductPrice>
                           {(() => {
                             const quantity = cartProducts.filter(
