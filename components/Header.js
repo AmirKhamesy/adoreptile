@@ -1,6 +1,6 @@
 import Link from "next/link";
 import styled from "styled-components";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import { CartContext } from "@/components/CartContext";
 import BarsIcon from "@/components/icons/Bars";
 import SearchIcon from "@/components/icons/SearchIcon";
@@ -504,18 +504,23 @@ const SearchOverlay = styled(Overlay)`
 `;
 
 const CloseSearchButton = styled(CloseButton)`
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   color: ${colors.textDark};
-  opacity: 0.7;
-  background: ${colors.white};
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 12px;
-  box-shadow: 0 4px 24px ${colors.primary}10;
+  background: rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
 
   &:hover {
-    opacity: 1;
-    transform: scale(1.05);
-    box-shadow: 0 4px 24px ${colors.primary}20;
+    background: rgba(0, 0, 0, 0.08);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
   }
 `;
 
@@ -529,6 +534,7 @@ export default function Header() {
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [resultsVisible, setResultsVisible] = useState(false);
+  const searchInputRef = useRef(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -594,6 +600,15 @@ export default function Header() {
     setSearchResults([]);
     setResultsVisible(false);
   };
+
+  useEffect(() => {
+    if (searchActive && searchInputRef.current) {
+      const timer = setTimeout(() => {
+        searchInputRef.current.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [searchActive]);
 
   return (
     <>
@@ -690,14 +705,26 @@ export default function Header() {
       <SearchContainer className={searchActive ? "isOpen" : ""}>
         <SearchHeader>
           <SearchInput
+            ref={searchInputRef}
             type="text"
             placeholder="Search products..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            autoFocus
           />
           <CloseSearchButton onClick={closeSearch} aria-label="Close search">
-            ✕
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
           </CloseSearchButton>
         </SearchHeader>
         <Divider />
