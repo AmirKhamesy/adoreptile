@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" fill="#ffffff"/>
+  <path d="M15,35 L15,65 L35,65 L35,60 L20,60 L20,35 L15,35 Z" fill="#DA291C"/>
+  <path d="M40,35 L45,35 L55,55 L55,35 L60,35 L60,65 L55,65 L45,45 L45,65 L40,65 L40,35 Z" fill="#DA291C"/>
+  <path d="M65,35 L85,35 L85,40 L70,40 L70,47.5 L85,47.5 L85,52.5 L70,52.5 L70,60 L85,60 L85,65 L65,65 L65,35 Z" fill="#DA291C"/>
+  <path d="M40,25 L60,25 L60,30 L40,30 L40,25 Z" fill="#003087"/>
+  <path d="M40,70 L60,70 L60,75 L40,75 L40,70 Z" fill="#003087"/>
+</svg> 

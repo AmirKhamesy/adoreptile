@@ -37,32 +37,66 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "No items provided" });
     }
 
-    if (!fromAddressId) {
-      console.log("❌ Validation failed: From address ID is required");
-      return res.status(400).json({ error: "From address ID is required" });
-    }
-
     if (!toAddressId) {
       console.log("❌ Validation failed: To address ID is required");
       return res.status(400).json({ error: "To address ID is required" });
     }
 
-    // Get addresses from database
-    console.log("🏠 Looking up addresses...");
-    console.log(`   - From address ID: ${fromAddressId}`);
+    // Get 'to' address from database
+    console.log("🏠 Looking up To address...");
     console.log(`   - To address ID: ${toAddressId}`);
 
-    const fromAddress = await Address.findById(fromAddressId);
     const toAddress = await Address.findById(toAddressId);
-
-    if (!fromAddress) {
-      console.log(`❌ From address not found with ID: ${fromAddressId}`);
-      return res.status(404).json({ error: "From address not found" });
-    }
 
     if (!toAddress) {
       console.log(`❌ To address not found with ID: ${toAddressId}`);
       return res.status(404).json({ error: "To address not found" });
+    }
+
+    // Get or create From address (store address)
+    let fromAddress;
+
+    // Try to get from ID if provided
+    if (fromAddressId) {
+      console.log(`🏠 Looking up From address with ID: ${fromAddressId}`);
+      fromAddress = await Address.findById(fromAddressId);
+
+      if (!fromAddress) {
+        console.log(
+          `⚠️ From address not found with ID: ${fromAddressId}, will try environment variables`
+        );
+      }
+    }
+
+    // If no fromAddress was found, try to use environment variables
+    if (!fromAddress) {
+      console.log("🏠 Using store address from environment variables");
+
+      // Check if we have the required environment variables
+      if (
+        process.env.STORE_STREET_ADDRESS &&
+        process.env.STORE_CITY &&
+        process.env.STORE_POSTAL_CODE &&
+        process.env.STORE_COUNTRY
+      ) {
+        fromAddress = {
+          name: process.env.STORE_NAME || "Store",
+          streetAddress: process.env.STORE_STREET_ADDRESS,
+          city: process.env.STORE_CITY,
+          postalCode: process.env.STORE_POSTAL_CODE,
+          country: process.env.STORE_COUNTRY,
+          phone: process.env.STORE_PHONE || "",
+        };
+
+        console.log("✅ Using store address from environment variables");
+      } else {
+        console.log("❌ No store address found in environment variables");
+        return res.status(400).json({
+          error: "From address not found",
+          message:
+            "Please provide a valid fromAddressId or set store address in environment variables",
+        });
+      }
     }
 
     console.log("✅ Addresses found:");

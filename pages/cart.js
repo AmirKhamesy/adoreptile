@@ -10,6 +10,7 @@ import { RevealWrapper } from "next-reveal";
 import { useSession } from "next-auth/react";
 import * as colors from "@/lib/colors";
 import Link from "next/link";
+import ShippingOptions from "@/components/ShippingOptions";
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -424,6 +425,7 @@ export default function CartPage() {
   const [country, setCountry] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [shippingFee, setShippingFee] = useState(null);
+  const [selectedShippingOption, setSelectedShippingOption] = useState(null);
 
   useEffect(() => {
     if (cartProducts.length > 0) {
@@ -479,11 +481,18 @@ export default function CartPage() {
       streetAddress,
       country,
       cartProducts,
+      shippingFee: selectedShippingOption?.price || shippingFee,
     });
     if (response.data.url) {
       window.location = response.data.url;
     }
   }
+
+  const handleSelectShipping = (option) => {
+    setSelectedShippingOption(option);
+    // Also update shipping fee
+    setShippingFee(option.price);
+  };
 
   const calculateTotal = () => {
     let total = 0;
@@ -661,6 +670,17 @@ export default function CartPage() {
 
                 <SectionTitle style={{ marginTop: "2rem" }}>
                   <ShippingIcon />
+                  Shipping Options
+                </SectionTitle>
+
+                <ShippingOptions
+                  products={products}
+                  cartProducts={cartProducts}
+                  onSelect={handleSelectShipping}
+                />
+
+                <SectionTitle style={{ marginTop: "2rem" }}>
+                  <ShippingIcon />
                   Shipping Information
                 </SectionTitle>
                 <StyledInput
@@ -709,7 +729,8 @@ export default function CartPage() {
                     !city ||
                     !postalCode ||
                     !streetAddress ||
-                    !country
+                    !country ||
+                    !shippingFee
                   }
                 >
                   <CheckoutIcon />

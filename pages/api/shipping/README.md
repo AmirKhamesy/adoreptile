@@ -4,10 +4,24 @@ This directory contains the API endpoint for handling shipping operations using 
 
 ## Environment Setup
 
-Make sure to set the following environment variable in your `.env` file:
+Make sure to set the following environment variables in your `.env` file:
 
 ```
+# SecureShip API Key
 SECURESHIP_API_KEY=your_secureship_api_key
+
+# Store Address Details for Server (API routes)
+STORE_ADDRESS_ID=mongodb_address_id_for_store_address
+
+# Store Address ID for Client (React components)
+NEXT_PUBLIC_STORE_ADDRESS_ID=mongodb_address_id_for_store_address
+
+# Or if you don't have a store address in the database, you can set these:
+STORE_STREET_ADDRESS=123 Main Street
+STORE_CITY=Vancouver
+STORE_POSTAL_CODE=V6C 1Z6
+STORE_COUNTRY=Canada
+STORE_PHONE=604-555-1234
 ```
 
 Note: The SecureShip API uses an `x-api-key` header for authentication.
@@ -125,10 +139,23 @@ Error responses will have the following format:
 ## Setup Guide
 
 1. Set your SecureShip API key in `.env`
-2. Make sure your products have weight and dimensions set
-3. Create shipping boxes using the `create-default-boxes` endpoint
-4. Test the API connection with the `test-api` endpoint
-5. Test the shipping quotes endpoint with valid address IDs
+2. Add your store address information to `.env` (see Environment Setup above)
+3. Make sure your products have weight and dimensions set in the database
+4. Create shipping boxes using the `create-default-boxes` endpoint
+5. Test the API connection with the `test-api` endpoint
+6. Test the shipping quotes endpoint with valid address IDs
+
+## Shipping Icons
+
+The cart shipping options display includes carrier icons for major shipping providers. The SVG files should be placed in the `/public` directory with the following names:
+
+- `/public/ups-logo.svg`
+- `/public/fedex-logo.svg`
+- `/public/canadapost-logo.svg`
+- `/public/canpar-logo.svg`
+- `/public/gls-logo.svg`
+- `/public/purolator-logo.svg`
+- `/public/generic-shipping-logo.svg` (default for unknown carriers)
 
 ## Debugging
 
@@ -144,3 +171,4 @@ The API includes detailed console logs to help with debugging:
 1. **401 Unauthorized**: Check that your SecureShip API key is correctly set in the environment variables
 2. **400 Bad Request**: Check the payload format or address validation errors in the logs
 3. **No suitable shipping box found**: Create shipping boxes or check product dimensions
+4. **Missing shipping options**: Ensure that products have proper dimensions and weight values set
