@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import * as colors from "@/lib/colors";
+import ShippingOptionsModal from "./ShippingOptionsModal";
 
 const ShippingOptionsContainer = styled.div`
   width: 100%;
@@ -112,7 +113,11 @@ const OptionTag = styled.div`
   position: absolute;
   top: -8px;
   right: 12px;
-  background: ${(props) => (props.type === "Cheapest" ? "#34C759" : "#007AFF")};
+  background: ${(props) => {
+    if (props.type === "Cheapest") return "#34C759";
+    if (props.type === "Fastest") return "#007AFF";
+    return "#9859F7"; // Best Value
+  }};
   color: white;
   font-size: 0.625rem;
   font-weight: 600;
@@ -120,10 +125,11 @@ const OptionTag = styled.div`
   border-radius: 12px;
   letter-spacing: 0.02em;
   box-shadow: 0 2px 6px
-    ${(props) =>
-      props.type === "Cheapest"
-        ? "rgba(52, 199, 89, 0.4)"
-        : "rgba(0, 122, 255, 0.4)"};
+    ${(props) => {
+      if (props.type === "Cheapest") return "rgba(52, 199, 89, 0.4)";
+      if (props.type === "Fastest") return "rgba(0, 122, 255, 0.4)";
+      return "rgba(152, 89, 247, 0.4)"; // Best Value
+    }};
   z-index: 2;
 `;
 
@@ -321,6 +327,56 @@ const ErrorMessage = styled(Message)`
   }
 `;
 
+// Add divider for custom selection
+const CustomSelectionDivider = styled.div`
+  width: 100%;
+  margin: 1rem 0;
+  border-top: 1px dashed ${colors.background};
+  position: relative;
+
+  &::after {
+    content: "Custom Selection";
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 0 0.75rem;
+    font-size: 0.7rem;
+    color: ${colors.textLight};
+    font-weight: 500;
+  }
+`;
+
+// Add More Options button
+const MoreOptionsButton = styled.button`
+  width: 100%;
+  padding: 0.875rem;
+  background: white;
+  border: 1.5px dashed ${colors.background};
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: ${colors.textDark};
+  transition: all 0.15s ease;
+  margin-top: 1rem;
+
+  &:hover {
+    background: ${colors.background};
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+
+  svg {
+    margin-right: 0.5rem;
+    width: 18px;
+    height: 18px;
+  }
+`;
+
 // Helper to get carrier logo and map carrier names
 const getCarrierLogo = (carrierCode) => {
   const carriers = {
@@ -359,6 +415,11 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
   const [error, setError] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
   const [userAddress, setUserAddress] = useState(null);
+  const [showAllOptions, setShowAllOptions] = useState(false);
+  const [isCustomSelection, setIsCustomSelection] = useState(false);
+  // Add cache reference to track previous cart state
+  const prevCartRef = useRef(null);
+  const cachedOptionsRef = useRef(null);
 
   useEffect(() => {
     if (!session) return;
@@ -376,6 +437,37 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
     fetchAddress();
   }, [session]);
 
+  // Helper function to check if cart has changed
+  const hasCartChanged = () => {
+    if (!prevCartRef.current || !cartProducts) return true;
+
+    // Different length means cart has changed
+    if (prevCartRef.current.length !== cartProducts.length) return true;
+
+    // Create a frequency map of current cart products
+    const currentCartMap = {};
+    cartProducts.forEach((id) => {
+      currentCartMap[id] = (currentCartMap[id] || 0) + 1;
+    });
+
+    // Create a frequency map of previous cart products
+    const prevCartMap = {};
+    prevCartRef.current.forEach((id) => {
+      prevCartMap[id] = (prevCartMap[id] || 0) + 1;
+    });
+
+    // Compare the two maps
+    for (const id in currentCartMap) {
+      if (currentCartMap[id] !== prevCartMap[id]) return true;
+    }
+
+    for (const id in prevCartMap) {
+      if (prevCartMap[id] !== currentCartMap[id]) return true;
+    }
+
+    return false;
+  };
+
   useEffect(() => {
     // Only fetch shipping options if we have products, a session, and a complete address
     if (
@@ -392,6 +484,23 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
     }
 
     const fetchShippingOptions = async () => {
+      // Check if cart has changed since last fetch
+      if (!hasCartChanged() && cachedOptionsRef.current) {
+        console.log("Using cached shipping options");
+        setOptions(cachedOptionsRef.current);
+
+        // Auto-select cheapest option if no option is selected
+        if (cachedOptionsRef.current.length && !selectedOption) {
+          const cheapestOption = [...cachedOptionsRef.current].sort(
+            (a, b) => a.price - b.price
+          )[0];
+          setSelectedOption(cheapestOption);
+          if (onSelect) onSelect(cheapestOption);
+        }
+
+        return;
+      }
+
       setLoading(true);
       setError(null);
 
@@ -429,6 +538,11 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
           }, 0),
         });
 
+        // Cache the results
+        cachedOptionsRef.current = response.data.quotes || [];
+        // Store current cart for future comparison
+        prevCartRef.current = [...cartProducts];
+
         setOptions(response.data.quotes || []);
 
         // Auto-select cheapest option if no option is selected
@@ -448,12 +562,74 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
     };
 
     fetchShippingOptions();
-  }, [products, cartProducts, session, userAddress, onSelect]);
+  }, [products, cartProducts, session, userAddress, onSelect, selectedOption]);
 
   const handleSelectOption = (option) => {
     setSelectedOption(option);
+
+    // Check if selected option is one of the top 3 options
+    const isTopOption =
+      option.id === cheapestOption?.id ||
+      option.id === fastestOption?.id ||
+      option.id === bestValueOption?.id;
+
+    setIsCustomSelection(!isTopOption);
+
     if (onSelect) onSelect(option);
   };
+
+  // Find the top 3 options - cheapest, fastest, and best value
+  const cheapestOption = options.length
+    ? [...options].sort((a, b) => a.price - b.price)[0]
+    : null;
+
+  // Helper function to extract delivery days
+  const getDays = (str) => {
+    const match = str?.match(/(\d+)[\s-]*day/i);
+    return match ? parseInt(match[1]) : 999;
+  };
+
+  const fastestOption = options.length
+    ? [...options].reduce((prev, current) => {
+        const prevDays = getDays(prev.estimatedDelivery);
+        const currentDays = getDays(current.estimatedDelivery);
+        return prevDays <= currentDays ? prev : current;
+      }, options[0])
+    : null;
+
+  // Calculate best value based on price and speed
+  const getBestValue = () => {
+    if (!options.length || options.length < 3) return null;
+
+    const remainingOptions = options.filter(
+      (opt) => opt.id !== cheapestOption?.id && opt.id !== fastestOption?.id
+    );
+
+    if (remainingOptions.length === 0) return null;
+
+    return remainingOptions.reduce((prev, current) => {
+      const getPriceSpeedRatio = (option) => {
+        const days = getDays(option.estimatedDelivery) || 1;
+        // Lower price and faster delivery = better value (lower ratio)
+        return option.price / (10 - Math.min(days, 9));
+      };
+
+      const prevRatio = getPriceSpeedRatio(prev);
+      const currentRatio = getPriceSpeedRatio(current);
+
+      return prevRatio <= currentRatio ? prev : current;
+    }, remainingOptions[0]);
+  };
+
+  const bestValueOption = getBestValue();
+
+  // Filter to only show top 3 options
+  const topOptions = options.filter(
+    (option) =>
+      option.id === cheapestOption?.id ||
+      option.id === fastestOption?.id ||
+      (bestValueOption && option.id === bestValueOption.id)
+  );
 
   if (!session) {
     return (
@@ -605,34 +781,99 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
       </SectionHeader>
 
       <OptionsGrid>
-        {options.map((option) => {
-          const isTagged =
-            option.tags?.includes("Cheapest") ||
-            option.tags?.includes("Fastest");
-          const tagType = option.tags?.includes("Cheapest")
-            ? "Cheapest"
-            : "Fastest";
+        {/* Display top options first */}
+        {[...topOptions]
+          .sort((a, b) => {
+            // Best Value first
+            if (a.id === bestValueOption?.id) return -1;
+            if (b.id === bestValueOption?.id) return 1;
+            // Then Cheapest
+            if (a.id === cheapestOption?.id) return -1;
+            if (b.id === cheapestOption?.id) return 1;
+            // Then Fastest
+            if (a.id === fastestOption?.id) return -1;
+            if (b.id === fastestOption?.id) return 1;
+            // Keep original order for any others
+            return 0;
+          })
+          .map((option) => {
+            let tagType = null;
+            if (option.id === cheapestOption?.id) tagType = "Cheapest";
+            else if (option.id === fastestOption?.id) tagType = "Fastest";
+            else if (bestValueOption && option.id === bestValueOption.id)
+              tagType = "Best Value";
 
-          return (
+            return (
+              <ShippingOption
+                key={option.id}
+                onClick={() => handleSelectOption(option)}
+                selected={selectedOption?.id === option.id}
+              >
+                {tagType && <OptionTag type={tagType}>{tagType}</OptionTag>}
+                <RadioCircle selected={selectedOption?.id === option.id} />
+
+                <OptionHeader>
+                  <CarrierLogo>
+                    <img
+                      src={getCarrierLogo(option.carrier)}
+                      alt={option.carrier}
+                    />
+                  </CarrierLogo>
+                  <ShippingName>{option.carrier}</ShippingName>
+                </OptionHeader>
+
+                <ShippingService>{option.service}</ShippingService>
+
+                <ShippingDelivery>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 8V12L15 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  {formatDeliveryEstimate(option.estimatedDelivery)}
+                </ShippingDelivery>
+
+                <ShippingPrice>
+                  <PriceAmount>
+                    ${option.price.toFixed(2)} <span>USD</span>
+                  </PriceAmount>
+                </ShippingPrice>
+              </ShippingOption>
+            );
+          })}
+
+        {/* Display custom selection if it's not one of the top options */}
+        {isCustomSelection && selectedOption && (
+          <>
+            <CustomSelectionDivider />
             <ShippingOption
-              key={option.id}
-              onClick={() => handleSelectOption(option)}
-              selected={selectedOption?.id === option.id}
+              key={selectedOption.id}
+              onClick={() => handleSelectOption(selectedOption)}
+              selected={true}
             >
-              {isTagged && <OptionTag type={tagType}>{tagType}</OptionTag>}
-              <RadioCircle selected={selectedOption?.id === option.id} />
+              <RadioCircle selected={true} />
 
               <OptionHeader>
                 <CarrierLogo>
                   <img
-                    src={getCarrierLogo(option.carrier)}
-                    alt={option.carrier}
+                    src={getCarrierLogo(selectedOption.carrier)}
+                    alt={selectedOption.carrier}
                   />
                 </CarrierLogo>
-                <ShippingName>{option.carrier}</ShippingName>
+                <ShippingName>{selectedOption.carrier}</ShippingName>
               </OptionHeader>
 
-              <ShippingService>{option.service}</ShippingService>
+              <ShippingService>{selectedOption.service}</ShippingService>
 
               <ShippingDelivery>
                 <svg
@@ -650,18 +891,50 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
                     strokeLinejoin="round"
                   />
                 </svg>
-                {formatDeliveryEstimate(option.estimatedDelivery)}
+                {formatDeliveryEstimate(selectedOption.estimatedDelivery)}
               </ShippingDelivery>
 
               <ShippingPrice>
                 <PriceAmount>
-                  ${option.price.toFixed(2)} <span>USD</span>
+                  ${selectedOption.price.toFixed(2)} <span>USD</span>
                 </PriceAmount>
               </ShippingPrice>
             </ShippingOption>
-          );
-        })}
+          </>
+        )}
       </OptionsGrid>
+
+      {/* More options button */}
+      <MoreOptionsButton onClick={() => setShowAllOptions(true)}>
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M5 12H19M12 5V19"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        View More Shipping Options
+      </MoreOptionsButton>
+
+      {/* Modal for all options */}
+      {showAllOptions && (
+        <ShippingOptionsModal
+          options={options}
+          selectedOption={selectedOption}
+          onSelectOption={handleSelectOption}
+          onClose={() => setShowAllOptions(false)}
+          getCarrierLogo={getCarrierLogo}
+          formatDeliveryEstimate={formatDeliveryEstimate}
+        />
+      )}
     </ShippingOptionsContainer>
   );
 }
