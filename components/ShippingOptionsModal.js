@@ -28,6 +28,7 @@ const ModalOverlay = styled.div`
 
   @media (max-width: 768px) {
     align-items: flex-end;
+    padding: 0; /* Remove any padding */
   }
 `;
 
@@ -61,6 +62,8 @@ const ModalContent = styled.div`
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     max-height: 90vh;
+    height: 90vh; /* Fixed height on mobile */
+    margin: 0; /* Remove any margin */
     animation: slideUpMobile 0.3s ease-out;
 
     @keyframes slideUpMobile {
@@ -121,6 +124,7 @@ const ModalBody = styled.div`
 
   @media (max-width: 768px) {
     max-height: calc(90vh - 70px);
+    padding: 0.75rem 1rem; /* Reduced padding on mobile */
   }
 `;
 
@@ -148,6 +152,11 @@ const ShippingOptionItem = styled.div`
       props.selected ? colors.primary : "rgba(0,0,0,0.1)"};
     background: ${(props) =>
       props.selected ? `${colors.primary}08` : "rgba(0,0,0,0.01)"};
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.75rem;
+    flex-wrap: wrap; /* Allow wrapping on mobile */
   }
 `;
 
@@ -191,10 +200,22 @@ const CarrierLogo = styled.div`
     max-height: 100%;
     object-fit: contain;
   }
+
+  @media (max-width: 768px) {
+    width: 36px;
+    height: 36px;
+    margin-right: 0.75rem;
+    padding: 6px;
+  }
 `;
 
 const OptionInfo = styled.div`
   flex-grow: 1;
+
+  @media (max-width: 768px) {
+    min-width: 0; /* Allow text to truncate */
+    width: calc(100% - 140px); /* Make space for price and checkbox */
+  }
 `;
 
 const OptionName = styled.div`
@@ -202,11 +223,25 @@ const OptionName = styled.div`
   color: ${colors.textDark};
   font-size: 1rem;
   margin-bottom: 0.25rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 `;
 
 const OptionService = styled.div`
   font-size: 0.85rem;
   color: ${colors.textLight};
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 `;
 
 const OptionMeta = styled.div`
@@ -228,6 +263,11 @@ const OptionMeta = styled.div`
     display: flex;
     align-items: center;
   }
+
+  @media (max-width: 768px) {
+    font-size: 0.75rem;
+    margin-top: 0.3rem;
+  }
 `;
 
 const OptionBadge = styled.div`
@@ -244,6 +284,15 @@ const OptionBadge = styled.div`
     if (props.type === "Fastest") return "#007AFF";
     return "#9859F7"; // Best Value
   }};
+
+  @media (max-width: 768px) {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.6rem;
+    margin-right: 0.5rem;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
 `;
 
 const OptionPrice = styled.div`
@@ -258,6 +307,11 @@ const OptionPrice = styled.div`
     font-weight: 400;
     color: ${colors.textLight};
     margin-left: 2px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    margin-left: 0.5rem;
   }
 `;
 
@@ -470,15 +524,13 @@ export default function ShippingOptionsModal({
                     </OptionMeta>
                   </OptionInfo>
 
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    {badgeType && (
-                      <OptionBadge type={badgeType}>{badgeType}</OptionBadge>
-                    )}
-                    <OptionPrice>
-                      ${option.price.toFixed(2)}
-                      <span>USD</span>
-                    </OptionPrice>
-                  </div>
+                  {badgeType && (
+                    <OptionBadge type={badgeType}>{badgeType}</OptionBadge>
+                  )}
+                  <OptionPrice>
+                    ${option.price.toFixed(2)}
+                    <span>USD</span>
+                  </OptionPrice>
                 </ShippingOptionItem>
               );
             })}
