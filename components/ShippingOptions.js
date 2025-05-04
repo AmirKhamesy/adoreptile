@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import { useSession } from "next-auth/react";
@@ -417,6 +417,9 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
   const [userAddress, setUserAddress] = useState(null);
   const [showAllOptions, setShowAllOptions] = useState(false);
   const [isCustomSelection, setIsCustomSelection] = useState(false);
+  // Add cache reference to track previous cart state
+  const prevCartRef = useRef(null);
+  const cachedOptionsRef = useRef(null);
 
   useEffect(() => {
     if (!session) return;
@@ -434,6 +437,37 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
     fetchAddress();
   }, [session]);
 
+  // Helper function to check if cart has changed
+  const hasCartChanged = () => {
+    if (!prevCartRef.current || !cartProducts) return true;
+
+    // Different length means cart has changed
+    if (prevCartRef.current.length !== cartProducts.length) return true;
+
+    // Create a frequency map of current cart products
+    const currentCartMap = {};
+    cartProducts.forEach((id) => {
+      currentCartMap[id] = (currentCartMap[id] || 0) + 1;
+    });
+
+    // Create a frequency map of previous cart products
+    const prevCartMap = {};
+    prevCartRef.current.forEach((id) => {
+      prevCartMap[id] = (prevCartMap[id] || 0) + 1;
+    });
+
+    // Compare the two maps
+    for (const id in currentCartMap) {
+      if (currentCartMap[id] !== prevCartMap[id]) return true;
+    }
+
+    for (const id in prevCartMap) {
+      if (prevCartMap[id] !== currentCartMap[id]) return true;
+    }
+
+    return false;
+  };
+
   useEffect(() => {
     // Only fetch shipping options if we have products, a session, and a complete address
     if (
@@ -450,6 +484,23 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
     }
 
     const fetchShippingOptions = async () => {
+      // Check if cart has changed since last fetch
+      if (!hasCartChanged() && cachedOptionsRef.current) {
+        console.log("Using cached shipping options");
+        setOptions(cachedOptionsRef.current);
+
+        // Auto-select cheapest option if no option is selected
+        if (cachedOptionsRef.current.length && !selectedOption) {
+          const cheapestOption = [...cachedOptionsRef.current].sort(
+            (a, b) => a.price - b.price
+          )[0];
+          setSelectedOption(cheapestOption);
+          if (onSelect) onSelect(cheapestOption);
+        }
+
+        return;
+      }
+
       setLoading(true);
       setError(null);
 
@@ -487,6 +538,11 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
           }, 0),
         });
 
+        // Cache the results
+        cachedOptionsRef.current = response.data.quotes || [];
+        // Store current cart for future comparison
+        prevCartRef.current = [...cartProducts];
+
         setOptions(response.data.quotes || []);
 
         // Auto-select cheapest option if no option is selected
@@ -506,7 +562,7 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
     };
 
     fetchShippingOptions();
-  }, [products, cartProducts, session, userAddress, onSelect]);
+  }, [products, cartProducts, session, userAddress, onSelect, selectedOption]);
 
   const handleSelectOption = (option) => {
     setSelectedOption(option);
