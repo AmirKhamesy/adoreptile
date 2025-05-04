@@ -726,62 +726,75 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
 
       <OptionsGrid>
         {/* Display top options first */}
-        {topOptions.map((option) => {
-          // Determine tag type based on which special option it is
-          let tagType = null;
-          if (option.id === cheapestOption?.id) tagType = "Cheapest";
-          else if (option.id === fastestOption?.id) tagType = "Fastest";
-          else if (bestValueOption && option.id === bestValueOption.id)
-            tagType = "Best Value";
+        {[...topOptions]
+          .sort((a, b) => {
+            // Best Value first
+            if (a.id === bestValueOption?.id) return -1;
+            if (b.id === bestValueOption?.id) return 1;
+            // Then Cheapest
+            if (a.id === cheapestOption?.id) return -1;
+            if (b.id === cheapestOption?.id) return 1;
+            // Then Fastest
+            if (a.id === fastestOption?.id) return -1;
+            if (b.id === fastestOption?.id) return 1;
+            // Keep original order for any others
+            return 0;
+          })
+          .map((option) => {
+            let tagType = null;
+            if (option.id === cheapestOption?.id) tagType = "Cheapest";
+            else if (option.id === fastestOption?.id) tagType = "Fastest";
+            else if (bestValueOption && option.id === bestValueOption.id)
+              tagType = "Best Value";
 
-          return (
-            <ShippingOption
-              key={option.id}
-              onClick={() => handleSelectOption(option)}
-              selected={selectedOption?.id === option.id}
-            >
-              {tagType && <OptionTag type={tagType}>{tagType}</OptionTag>}
-              <RadioCircle selected={selectedOption?.id === option.id} />
+            return (
+              <ShippingOption
+                key={option.id}
+                onClick={() => handleSelectOption(option)}
+                selected={selectedOption?.id === option.id}
+              >
+                {tagType && <OptionTag type={tagType}>{tagType}</OptionTag>}
+                <RadioCircle selected={selectedOption?.id === option.id} />
 
-              <OptionHeader>
-                <CarrierLogo>
-                  <img
-                    src={getCarrierLogo(option.carrier)}
-                    alt={option.carrier}
-                  />
-                </CarrierLogo>
-                <ShippingName>{option.carrier}</ShippingName>
-              </OptionHeader>
+                <OptionHeader>
+                  <CarrierLogo>
+                    <img
+                      src={getCarrierLogo(option.carrier)}
+                      alt={option.carrier}
+                    />
+                  </CarrierLogo>
+                  <ShippingName>{option.carrier}</ShippingName>
+                </OptionHeader>
 
-              <ShippingService>{option.service}</ShippingService>
+                <ShippingService>{option.service}</ShippingService>
 
-              <ShippingDelivery>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12 8V12L15 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                {formatDeliveryEstimate(option.estimatedDelivery)}
-              </ShippingDelivery>
+                <ShippingDelivery>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 8V12L15 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  {formatDeliveryEstimate(option.estimatedDelivery)}
+                </ShippingDelivery>
 
-              <ShippingPrice>
-                <PriceAmount>
-                  ${option.price.toFixed(2)} <span>USD</span>
-                </PriceAmount>
-              </ShippingPrice>
-            </ShippingOption>
-          );
-        })}
+                <ShippingPrice>
+                  <PriceAmount>
+                    ${option.price.toFixed(2)} <span>USD</span>
+                  </PriceAmount>
+                </ShippingPrice>
+              </ShippingOption>
+            );
+          })}
 
         {/* Display custom selection if it's not one of the top options */}
         {isCustomSelection && selectedOption && (
