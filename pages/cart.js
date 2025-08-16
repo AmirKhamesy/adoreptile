@@ -7,7 +7,7 @@ import { CartContext } from "@/components/CartContext";
 import axios from "axios";
 import Input from "@/components/Input";
 import { RevealWrapper } from "next-reveal";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import * as colors from "@/lib/colors";
 import Link from "next/link";
 import ShippingOptions from "@/components/ShippingOptions";
@@ -639,6 +639,17 @@ export default function CartPage() {
                     </CartItem>
                   );
                 })}
+
+                <SectionTitle style={{ marginTop: "2rem" }}>
+                  <ShippingIcon />
+                  Shipping Options
+                </SectionTitle>
+
+                <ShippingOptions
+                  products={products}
+                  cartProducts={cartProducts}
+                  onSelect={handleSelectShipping}
+                />
               </CartSection>
             </RevealWrapper>
 
@@ -668,74 +679,90 @@ export default function CartPage() {
                   </SummaryRow>
                 </OrderSummary>
 
-                <SectionTitle style={{ marginTop: "2rem" }}>
-                  <ShippingIcon />
-                  Shipping Options
-                </SectionTitle>
-
-                <ShippingOptions
-                  products={products}
-                  cartProducts={cartProducts}
-                  onSelect={handleSelectShipping}
-                />
-
-                <SectionTitle style={{ marginTop: "2rem" }}>
-                  <ShippingIcon />
-                  Shipping Information
-                </SectionTitle>
-                <StyledInput
-                  type="text"
-                  placeholder="Full Name"
-                  value={name}
-                  onChange={(ev) => setName(ev.target.value)}
-                />
-                <StyledInput
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(ev) => setEmail(ev.target.value)}
-                />
-                <InputGrid>
-                  <StyledInput
-                    type="text"
-                    placeholder="City"
-                    value={city}
-                    onChange={(ev) => setCity(ev.target.value)}
-                  />
-                  <StyledInput
-                    type="text"
-                    placeholder="Postal Code"
-                    value={postalCode}
-                    onChange={(ev) => setPostalCode(ev.target.value)}
-                  />
-                </InputGrid>
-                <StyledInput
-                  type="text"
-                  placeholder="Street Address"
-                  value={streetAddress}
-                  onChange={(ev) => setStreetAddress(ev.target.value)}
-                />
-                <StyledInput
-                  type="text"
-                  placeholder="Country"
-                  value={country}
-                  onChange={(ev) => setCountry(ev.target.value)}
-                />
-                <CheckoutButton
-                  onClick={goToPayment}
-                  disabled={
-                    !name ||
-                    !email ||
-                    !city ||
-                    !postalCode ||
-                    !streetAddress ||
-                    !country ||
-                    !shippingFee
-                  }
-                >
-                  <CheckoutIcon />
-                  Proceed to Checkout
-                </CheckoutButton>
+                {!session ? (
+                  <div style={{ textAlign: "center", marginTop: "2rem" }}>
+                    <p style={{ marginBottom: "1rem", color: colors.textDark }}>
+                      Please sign in to complete your order
+                    </p>
+                    <Button
+                      onClick={() => signIn("google")}
+                      style={{
+                        background: colors.primary,
+                        color: "white",
+                        border: "none",
+                        padding: "0.875rem 1.5rem",
+                        borderRadius: "12px",
+                        fontSize: "1rem",
+                        fontWeight: "500",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        width: "100%",
+                      }}
+                    >
+                      Sign In with Google
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <SectionTitle style={{ marginTop: "2rem" }}>
+                      <ShippingIcon />
+                      Shipping Information
+                    </SectionTitle>
+                    <StyledInput
+                      type="text"
+                      placeholder="Full Name"
+                      value={name}
+                      onChange={(ev) => setName(ev.target.value)}
+                    />
+                    <StyledInput
+                      type="email"
+                      placeholder="Email"
+                      value={email}
+                      onChange={(ev) => setEmail(ev.target.value)}
+                    />
+                    <InputGrid>
+                      <StyledInput
+                        type="text"
+                        placeholder="City"
+                        value={city}
+                        onChange={(ev) => setCity(ev.target.value)}
+                      />
+                      <StyledInput
+                        type="text"
+                        placeholder="Postal Code"
+                        value={postalCode}
+                        onChange={(ev) => setPostalCode(ev.target.value)}
+                      />
+                    </InputGrid>
+                    <StyledInput
+                      type="text"
+                      placeholder="Street Address"
+                      value={streetAddress}
+                      onChange={(ev) => setStreetAddress(ev.target.value)}
+                    />
+                    <StyledInput
+                      type="text"
+                      placeholder="Country"
+                      value={country}
+                      onChange={(ev) => setCountry(ev.target.value)}
+                    />
+                    <CheckoutButton
+                      onClick={goToPayment}
+                      disabled={
+                        !name ||
+                        !email ||
+                        !city ||
+                        !postalCode ||
+                        !streetAddress ||
+                        !country ||
+                        !shippingFee
+                      }
+                    >
+                      <CheckoutIcon />
+                      Proceed to Checkout
+                    </CheckoutButton>
+                  </>
+                )}
               </CartSection>
             </RevealWrapper>
           </CartGrid>
