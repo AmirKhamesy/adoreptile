@@ -10,7 +10,7 @@ import { RevealWrapper } from "next-reveal";
 import { useSession, signIn } from "next-auth/react";
 import * as colors from "@/lib/colors";
 import Link from "next/link";
-import ShippingOptions from "@/components/ShippingOptions";
+import DeliveryOptions from "@/components/DeliveryOptions";
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -427,7 +427,10 @@ export default function CartPage() {
   const [shippingFee, setShippingFee] = useState(null);
   const [selectedShippingOption, setSelectedShippingOption] = useState(null);
   const [pickupLocation, setPickupLocation] = useState(null);
+  const [deliverySettings, setDeliverySettings] = useState(null);
+  const [userAddress, setUserAddress] = useState(null);
   const isPickup = selectedShippingOption?.isPickup === true;
+  const isLocalDelivery = selectedShippingOption?.isLocalDelivery === true;
 
   useEffect(() => {
     if (cartProducts.length > 0) {
@@ -453,6 +456,9 @@ export default function CartPage() {
     axios.get("/api/settings?name=pickupLocation").then((res) => {
       if (res.data?.value) setPickupLocation(res.data.value);
     });
+    axios.get("/api/settings?name=deliverySettings").then((res) => {
+      if (res.data?.value) setDeliverySettings(res.data.value);
+    });
   }, []);
 
   useEffect(() => {
@@ -460,6 +466,7 @@ export default function CartPage() {
       return;
     }
     axios.get("/api/address").then((response) => {
+      setUserAddress(response.data);
       setName(response.data.name);
       setEmail(response.data.email);
       setCity(response.data.city);
@@ -479,6 +486,7 @@ export default function CartPage() {
 
   async function goToPayment() {
     const pickup = selectedShippingOption?.isPickup;
+    const localDelivery = selectedShippingOption?.isLocalDelivery;
     const response = await axios.post("/api/checkout", {
       name,
       email,
@@ -497,6 +505,7 @@ export default function CartPage() {
             service: selectedShippingOption.service,
             price: selectedShippingOption.price,
             isPickup: selectedShippingOption.isPickup || false,
+            isLocalDelivery: selectedShippingOption.isLocalDelivery || false,
           }
         : null,
     });
@@ -507,7 +516,11 @@ export default function CartPage() {
 
   const handleSelectShipping = (option) => {
     setSelectedShippingOption(option);
-    setShippingFee(option.isPickup ? 0 : option.price);
+    if (option) {
+      setShippingFee(option.isPickup ? 0 : option.price);
+    } else {
+      setShippingFee(0);
+    }
   };
 
   const calculateTotal = () => {
@@ -658,14 +671,16 @@ export default function CartPage() {
 
                 <SectionTitle style={{ marginTop: "2rem" }}>
                   <ShippingIcon />
-                  Shipping Options
+                  Delivery Options
                 </SectionTitle>
 
-                <ShippingOptions
+                <DeliveryOptions
                   products={products}
                   cartProducts={cartProducts}
                   onSelect={handleSelectShipping}
                   pickupLocation={pickupLocation}
+                  deliverySettings={deliverySettings}
+                  userAddress={userAddress}
                 />
               </CartSection>
             </RevealWrapper>
@@ -723,7 +738,7 @@ export default function CartPage() {
                   <>
                     <SectionTitle style={{ marginTop: "2rem" }}>
                       <ShippingIcon />
-                      {isPickup ? "Your Details" : "Shipping Information"}
+                      {isPickup ? "Your Details" : "Contact & Shipping"}
                     </SectionTitle>
                     <StyledInput
                       type="text"
@@ -737,11 +752,11 @@ export default function CartPage() {
                       value={email}
                       onChange={(ev) => setEmail(ev.target.value)}
                     />
-                    {isPickup ? (
+                    {isPickup || isLocalDelivery ? (
                       <div
                         style={{
-                          background: "rgba(52,199,89,0.06)",
-                          border: "1.5px solid rgba(52,199,89,0.3)",
+                          background: isPickup ? "rgba(52,199,89,0.06)" : `${colors.primary}06`,
+                          border: isPickup ? "1.5px solid rgba(52,199,89,0.3)" : `1.5px solid ${colors.primary}25`,
                           borderRadius: "10px",
                           padding: "1rem",
                           marginBottom: "1rem",
@@ -756,12 +771,16 @@ export default function CartPage() {
                           viewBox="0 0 24 24"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
-                          style={{ color: "#34c759", flexShrink: 0, marginTop: "2px" }}
+                          style={{ color: isPickup ? "#34c759" : colors.primary, flexShrink: 0, marginTop: "2px" }}
                         >
-                          <path
-                            d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
-                            fill="currentColor"
-                          />
+                          {isPickup ? (
+                            <path
+                              d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+                              fill="currentColor"
+                            />
+                          ) : (
+                            <path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+                          )}
                         </svg>
                         <div>
                           <div
@@ -772,19 +791,15 @@ export default function CartPage() {
                               marginBottom: "0.25rem",
                             }}
                           >
-                            {selectedShippingOption?.service || "Store Pickup"}
+                            {isPickup
+                              ? selectedShippingOption?.service || "Store Pickup"
+                              : "Local Delivery"}
                           </div>
-                          {pickupLocation?.address && (
-                            <div
-                              style={{
-                                fontSize: "0.8rem",
-                                color: "#6b7280",
-                                lineHeight: 1.5,
-                              }}
-                            >
-                              {pickupLocation.address}
-                            </div>
-                          )}
+                          <div style={{ fontSize: "0.8rem", color: "#6b7280", lineHeight: 1.5 }}>
+                            {isPickup
+                              ? pickupLocation?.address || ""
+                              : `Delivering to: ${streetAddress || ""}, ${city || ""}`}
+                          </div>
                         </div>
                       </div>
                     ) : (
@@ -823,6 +838,7 @@ export default function CartPage() {
                         !name ||
                         !email ||
                         (!isPickup &&
+                          !isLocalDelivery &&
                           (!city ||
                             !postalCode ||
                             !streetAddress ||

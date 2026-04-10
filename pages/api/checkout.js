@@ -72,6 +72,11 @@ export default async function handler(req, res) {
 
   const session = await getServerSession(req, res, authOptions);
   const isPickup = selectedShippingOption?.isPickup === true;
+  const isLocalDelivery = selectedShippingOption?.isLocalDelivery === true;
+
+  let orderType = "delivery";
+  if (isPickup) orderType = "pickup";
+  else if (isLocalDelivery) orderType = "local_delivery";
 
   const orderDoc = await Order.create({
     line_items,
@@ -83,13 +88,14 @@ export default async function handler(req, res) {
     streetAddress,
     country,
     paid: false,
-    orderType: isPickup ? "pickup" : "delivery",
+    orderType,
     userEmail: session?.user?.email,
-    selectedService: isPickup
-      ? null
-      : selectedShippingOption?.id
-        ? selectedShippingOption.id.split("-")[1]
-        : null,
+    selectedService:
+      isPickup || isLocalDelivery
+        ? null
+        : selectedShippingOption?.id
+          ? selectedShippingOption.id.split("-")[1]
+          : null,
   });
 
   let shippingFeeCents = 0;
@@ -105,11 +111,19 @@ export default async function handler(req, res) {
     shippingFeeCents = Math.round(effectiveShippingFee * 100);
   }
 
-  const shippingDisplayName = isPickup
-    ? `Pick Up: ${selectedShippingOption?.service || "Store Pickup"}`
-    : selectedShippingOption
+  let shippingDisplayName;
+  if (isPickup) {
+    shippingDisplayName = `Pick Up: ${selectedShippingOption?.service || "Store Pickup"}`;
+  } else if (isLocalDelivery) {
+    shippingDisplayName =
+      shippingFeeCents > 0
+        ? `Local Delivery — $${(shippingFeeCents / 100).toFixed(2)}`
+        : "Local Delivery (Free)";
+  } else {
+    shippingDisplayName = selectedShippingOption
       ? `${selectedShippingOption.carrier} ${selectedShippingOption.service}`
       : "Shipping fee";
+  }
 
   const stripeSession = await stripe.checkout.sessions.create({
     line_items,
