@@ -10,13 +10,18 @@ export function CartContextProvider({ children }) {
   // Initialize cart from localStorage
   useEffect(() => {
     if (ls && !isInitialized) {
-      const storedCart = ls.getItem("cart");
-      if (storedCart) {
-        try {
-          setCartProducts(JSON.parse(storedCart));
-        } catch (err) {
-          console.error("Error parsing cart from localStorage:", err);
-          ls.removeItem("cart");
+      const isSuccess = typeof window !== "undefined" && window.location.href.includes("success");
+      if (isSuccess) {
+        ls.removeItem("cart");
+      } else {
+        const storedCart = ls.getItem("cart");
+        if (storedCart) {
+          try {
+            setCartProducts(JSON.parse(storedCart));
+          } catch (err) {
+            console.error("Error parsing cart from localStorage:", err);
+            ls.removeItem("cart");
+          }
         }
       }
       setIsInitialized(true);
