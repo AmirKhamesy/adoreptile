@@ -327,6 +327,55 @@ const ErrorMessage = styled(Message)`
   }
 `;
 
+const PickupOption = styled(ShippingOption)`
+  border-color: ${(props) => (props.selected ? "#34C759" : "rgba(0,0,0,0.06)")};
+  box-shadow: ${(props) =>
+    props.selected ? "0 4px 14px rgba(52,199,89,0.2)" : "0 2px 6px rgba(0,0,0,0.03)"};
+
+  ${(props) =>
+    props.selected &&
+    `
+    background: rgba(52,199,89,0.04);
+  `}
+`;
+
+const PickupBadge = styled(OptionTag)`
+  background: #34c759;
+  box-shadow: 0 2px 6px rgba(52, 199, 89, 0.4);
+`;
+
+const PickupIcon = styled.div`
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+  background: rgba(52, 199, 89, 0.1);
+  border-radius: 8px;
+  color: #34c759;
+`;
+
+const PickupAddress = styled.div`
+  font-size: 0.75rem;
+  color: ${colors.textLight};
+  margin-top: 0.25rem;
+  line-height: 1.4;
+`;
+
+const PickupRadioCircle = styled(RadioCircle)`
+  border-color: ${(props) => (props.selected ? "#34c759" : "rgba(0,0,0,0.15)")};
+
+  &::after {
+    background: ${(props) => (props.selected ? "#34c759" : "transparent")};
+  }
+`;
+
+const PickupFreePrice = styled(ShippingPrice)`
+  color: #34c759;
+`;
+
 // Add divider for custom selection
 const CustomSelectionDivider = styled.div`
   width: 100%;
@@ -408,7 +457,7 @@ const formatDeliveryEstimate = (estimatedDelivery) => {
   return `Delivery: ${estimatedDelivery}`;
 };
 
-export default function ShippingOptions({ products, cartProducts, onSelect }) {
+export default function ShippingOptions({ products, cartProducts, onSelect, pickupLocation }) {
   const { data: session } = useSession();
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -567,6 +616,13 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
   const handleSelectOption = (option) => {
     setSelectedOption(option);
 
+    // Pickup is always a "top" option (not custom)
+    if (option.isPickup) {
+      setIsCustomSelection(false);
+      if (onSelect) onSelect(option);
+      return;
+    }
+
     // Check if selected option is one of the top 3 options
     const isTopOption =
       option.id === cheapestOption?.id ||
@@ -577,6 +633,18 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
 
     if (onSelect) onSelect(option);
   };
+
+  const pickupOption = pickupLocation?.lat
+    ? {
+        id: "pickup",
+        isPickup: true,
+        carrier: "Pickup",
+        service: pickupLocation.title || "Store Pickup",
+        price: 0,
+        address: pickupLocation.address,
+        estimatedDelivery: "Ready for pickup",
+      }
+    : null;
 
   // Find the top 3 options - cheapest, fastest, and best value
   const cheapestOption = options.length
@@ -657,10 +725,11 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
   }
 
   if (
-    !userAddress?.streetAddress ||
-    !userAddress?.city ||
-    !userAddress?.postalCode ||
-    !userAddress?.country
+    !pickupOption &&
+    (!userAddress?.streetAddress ||
+      !userAddress?.city ||
+      !userAddress?.postalCode ||
+      !userAddress?.country)
   ) {
     return (
       <ShippingOptionsContainer>
@@ -689,6 +758,29 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
   if (loading) {
     return (
       <ShippingOptionsContainer>
+        {pickupOption && (
+          <OptionsGrid style={{ marginBottom: "1rem" }}>
+            <PickupOption
+              onClick={() => handleSelectOption(pickupOption)}
+              selected={selectedOption?.id === "pickup"}
+            >
+              <PickupBadge type="Cheapest">Free</PickupBadge>
+              <PickupRadioCircle selected={selectedOption?.id === "pickup"} />
+              <OptionHeader>
+                <PickupIcon>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor" />
+                  </svg>
+                </PickupIcon>
+                <ShippingName>{pickupOption.service}</ShippingName>
+              </OptionHeader>
+              {pickupOption.address && <PickupAddress>{pickupOption.address}</PickupAddress>}
+              <PickupFreePrice>
+                <PriceAmount>Free <span>pickup</span></PriceAmount>
+              </PickupFreePrice>
+            </PickupOption>
+          </OptionsGrid>
+        )}
         <LoadingContainer>
           <LoadingSpinner>
             <svg
@@ -719,7 +811,7 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
     );
   }
 
-  if (error) {
+  if (error && !pickupOption) {
     return (
       <ShippingOptionsContainer>
         <ErrorMessage>
@@ -745,7 +837,7 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
     );
   }
 
-  if (!options?.length) {
+  if (!options?.length && !pickupOption) {
     return (
       <ShippingOptionsContainer>
         <Message>
@@ -774,14 +866,55 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
   return (
     <ShippingOptionsContainer>
       <SectionHeader>
-        <SectionTitle>Shipping options</SectionTitle>
-        <DeliveryInfo>
-          Shipping to {userAddress.city}, {userAddress.country}
-        </DeliveryInfo>
+        <SectionTitle>Delivery options</SectionTitle>
+        {userAddress?.city && userAddress?.country && (
+          <DeliveryInfo>
+            Shipping to {userAddress.city}, {userAddress.country}
+          </DeliveryInfo>
+        )}
       </SectionHeader>
 
       <OptionsGrid>
-        {/* Display top options first */}
+        {/* Pick up in store option */}
+        {pickupOption && (
+          <PickupOption
+            onClick={() => handleSelectOption(pickupOption)}
+            selected={selectedOption?.id === "pickup"}
+          >
+            <PickupBadge type="Cheapest">Free</PickupBadge>
+            <PickupRadioCircle selected={selectedOption?.id === "pickup"} />
+
+            <OptionHeader>
+              <PickupIcon>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </PickupIcon>
+              <ShippingName>{pickupOption.service}</ShippingName>
+            </OptionHeader>
+
+            {pickupOption.address && (
+              <PickupAddress>{pickupOption.address}</PickupAddress>
+            )}
+
+            <PickupFreePrice>
+              <PriceAmount>
+                Free <span>pickup</span>
+              </PriceAmount>
+            </PickupFreePrice>
+          </PickupOption>
+        )}
+
+        {/* Display top shipping options */}
         {[...topOptions]
           .sort((a, b) => {
             // Best Value first
@@ -904,8 +1037,8 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
         )}
       </OptionsGrid>
 
-      {/* More options button */}
-      <MoreOptionsButton onClick={() => setShowAllOptions(true)}>
+      {/* More options button - only show when there are carrier quotes */}
+      {options.length > 0 && <MoreOptionsButton onClick={() => setShowAllOptions(true)}>
         <svg
           width="24"
           height="24"
@@ -922,7 +1055,7 @@ export default function ShippingOptions({ products, cartProducts, onSelect }) {
           />
         </svg>
         View More Shipping Options
-      </MoreOptionsButton>
+      </MoreOptionsButton>}
 
       {/* Modal for all options */}
       {showAllOptions && (

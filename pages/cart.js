@@ -426,6 +426,8 @@ export default function CartPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [shippingFee, setShippingFee] = useState(null);
   const [selectedShippingOption, setSelectedShippingOption] = useState(null);
+  const [pickupLocation, setPickupLocation] = useState(null);
+  const isPickup = selectedShippingOption?.isPickup === true;
 
   useEffect(() => {
     if (cartProducts.length > 0) {
@@ -447,6 +449,9 @@ export default function CartPage() {
     }
     axios.get("/api/settings?name=shippingFee").then((res) => {
       setShippingFee(res.data.value);
+    });
+    axios.get("/api/settings?name=pickupLocation").then((res) => {
+      if (res.data?.value) setPickupLocation(res.data.value);
     });
   }, []);
 
@@ -473,15 +478,27 @@ export default function CartPage() {
   }
 
   async function goToPayment() {
+    const pickup = selectedShippingOption?.isPickup;
     const response = await axios.post("/api/checkout", {
       name,
       email,
-      city,
-      postalCode,
-      streetAddress,
-      country,
+      city: pickup ? "Pickup" : city,
+      postalCode: pickup ? "" : postalCode,
+      streetAddress: pickup
+        ? pickupLocation?.address || "Store Pickup"
+        : streetAddress,
+      country: pickup ? "CA" : country,
       cartProducts,
-      shippingFee: selectedShippingOption?.price || shippingFee,
+      shippingFee: pickup ? 0 : selectedShippingOption?.price || shippingFee,
+      selectedShippingOption: selectedShippingOption
+        ? {
+            id: selectedShippingOption.id,
+            carrier: selectedShippingOption.carrier,
+            service: selectedShippingOption.service,
+            price: selectedShippingOption.price,
+            isPickup: selectedShippingOption.isPickup || false,
+          }
+        : null,
     });
     if (response.data.url) {
       window.location = response.data.url;
@@ -490,8 +507,7 @@ export default function CartPage() {
 
   const handleSelectShipping = (option) => {
     setSelectedShippingOption(option);
-    // Also update shipping fee
-    setShippingFee(option.price);
+    setShippingFee(option.isPickup ? 0 : option.price);
   };
 
   const calculateTotal = () => {
@@ -649,6 +665,7 @@ export default function CartPage() {
                   products={products}
                   cartProducts={cartProducts}
                   onSelect={handleSelectShipping}
+                  pickupLocation={pickupLocation}
                 />
               </CartSection>
             </RevealWrapper>
@@ -706,7 +723,7 @@ export default function CartPage() {
                   <>
                     <SectionTitle style={{ marginTop: "2rem" }}>
                       <ShippingIcon />
-                      Shipping Information
+                      {isPickup ? "Your Details" : "Shipping Information"}
                     </SectionTitle>
                     <StyledInput
                       type="text"
@@ -720,42 +737,97 @@ export default function CartPage() {
                       value={email}
                       onChange={(ev) => setEmail(ev.target.value)}
                     />
-                    <InputGrid>
-                      <StyledInput
-                        type="text"
-                        placeholder="City"
-                        value={city}
-                        onChange={(ev) => setCity(ev.target.value)}
-                      />
-                      <StyledInput
-                        type="text"
-                        placeholder="Postal Code"
-                        value={postalCode}
-                        onChange={(ev) => setPostalCode(ev.target.value)}
-                      />
-                    </InputGrid>
-                    <StyledInput
-                      type="text"
-                      placeholder="Street Address"
-                      value={streetAddress}
-                      onChange={(ev) => setStreetAddress(ev.target.value)}
-                    />
-                    <StyledInput
-                      type="text"
-                      placeholder="Country"
-                      value={country}
-                      onChange={(ev) => setCountry(ev.target.value)}
-                    />
+                    {isPickup ? (
+                      <div
+                        style={{
+                          background: "rgba(52,199,89,0.06)",
+                          border: "1.5px solid rgba(52,199,89,0.3)",
+                          borderRadius: "10px",
+                          padding: "1rem",
+                          marginBottom: "1rem",
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: "0.75rem",
+                        }}
+                      >
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          style={{ color: "#34c759", flexShrink: 0, marginTop: "2px" }}
+                        >
+                          <path
+                            d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                        <div>
+                          <div
+                            style={{
+                              fontWeight: 600,
+                              fontSize: "0.9rem",
+                              color: "#1d1d1f",
+                              marginBottom: "0.25rem",
+                            }}
+                          >
+                            {selectedShippingOption?.service || "Store Pickup"}
+                          </div>
+                          {pickupLocation?.address && (
+                            <div
+                              style={{
+                                fontSize: "0.8rem",
+                                color: "#6b7280",
+                                lineHeight: 1.5,
+                              }}
+                            >
+                              {pickupLocation.address}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <InputGrid>
+                          <StyledInput
+                            type="text"
+                            placeholder="City"
+                            value={city}
+                            onChange={(ev) => setCity(ev.target.value)}
+                          />
+                          <StyledInput
+                            type="text"
+                            placeholder="Postal Code"
+                            value={postalCode}
+                            onChange={(ev) => setPostalCode(ev.target.value)}
+                          />
+                        </InputGrid>
+                        <StyledInput
+                          type="text"
+                          placeholder="Street Address"
+                          value={streetAddress}
+                          onChange={(ev) => setStreetAddress(ev.target.value)}
+                        />
+                        <StyledInput
+                          type="text"
+                          placeholder="Country"
+                          value={country}
+                          onChange={(ev) => setCountry(ev.target.value)}
+                        />
+                      </>
+                    )}
                     <CheckoutButton
                       onClick={goToPayment}
                       disabled={
                         !name ||
                         !email ||
-                        !city ||
-                        !postalCode ||
-                        !streetAddress ||
-                        !country ||
-                        !shippingFee
+                        (!isPickup &&
+                          (!city ||
+                            !postalCode ||
+                            !streetAddress ||
+                            !country)) ||
+                        !selectedShippingOption
                       }
                     >
                       <CheckoutIcon />

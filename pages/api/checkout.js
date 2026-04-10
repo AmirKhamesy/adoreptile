@@ -19,6 +19,8 @@ export default async function handler(req, res) {
     streetAddress,
     country,
     cartProducts,
+    selectedShippingOption,
+    shippingFee,
   } = req.body;
 
   console.log(req.body);
@@ -29,17 +31,11 @@ export default async function handler(req, res) {
 
   const getBestDiscount = (product, quantity) => {
     if (!product.discounts?.length) return null;
-
-    // Filter discounts where quantity meets or exceeds threshold
-    // Sort by quantity threshold in descending order to get highest eligible quantity
     const applicableDiscounts = product.discounts
       .filter((d) => quantity >= d.quantity)
       .sort((a, b) => b.quantity - a.quantity);
-
-    // Return the discount with highest quantity requirement
     return applicableDiscounts[0] || null;
   };
-
   const calculateProductTotal = (product, quantity) => {
     if (!product.discounts?.length) return product.price * quantity;
 
@@ -54,9 +50,10 @@ export default async function handler(req, res) {
   };
 
   let line_items = [];
+  let items = [];
   for (const productId of uniqueIds) {
     const productInfo = productsInfos.find(
-      (p) => p._id.toString() === productId
+      (p) => p._id.toString() === productId,
     );
     const quantity = productsIds.filter((id) => id === productId)?.length || 0;
     if (quantity > 0 && productInfo) {
@@ -69,13 +66,16 @@ export default async function handler(req, res) {
           unit_amount: Math.round((totalAmount * 100) / quantity), // Convert to cents and get per-unit price
         },
       });
+      items.push({ productId, quantity });
     }
   }
 
   const session = await getServerSession(req, res, authOptions);
+  const isPickup = selectedShippingOption?.isPickup === true;
 
   const orderDoc = await Order.create({
     line_items,
+    items,
     name,
     email,
     city,
@@ -83,11 +83,33 @@ export default async function handler(req, res) {
     streetAddress,
     country,
     paid: false,
+    orderType: isPickup ? "pickup" : "delivery",
     userEmail: session?.user?.email,
+    selectedService: isPickup
+      ? null
+      : selectedShippingOption?.id
+        ? selectedShippingOption.id.split("-")[1]
+        : null,
   });
 
-  const shippingFeeSetting = await Setting.findOne({ name: "shippingFee" });
-  const shippingFeeCents = parseFloat(shippingFeeSetting.value || "0") * 100;
+  let shippingFeeCents = 0;
+  if (!isPickup) {
+    const shippingFeeSetting = await Setting.findOne({ name: "shippingFee" });
+    const fallbackShippingFee = parseFloat(shippingFeeSetting?.value || "0");
+    const effectiveShippingFee =
+      typeof selectedShippingOption?.price === "number"
+        ? selectedShippingOption.price
+        : typeof shippingFee === "number"
+          ? shippingFee
+          : fallbackShippingFee;
+    shippingFeeCents = Math.round(effectiveShippingFee * 100);
+  }
+
+  const shippingDisplayName = isPickup
+    ? `Pick Up: ${selectedShippingOption?.service || "Store Pickup"}`
+    : selectedShippingOption
+      ? `${selectedShippingOption.carrier} ${selectedShippingOption.service}`
+      : "Shipping fee";
 
   const stripeSession = await stripe.checkout.sessions.create({
     line_items,
@@ -95,12 +117,15 @@ export default async function handler(req, res) {
     customer_email: email,
     success_url: process.env.PUBLIC_URL + "/cart?success=1",
     cancel_url: process.env.PUBLIC_URL + "/cart?canceled=1",
-    metadata: { orderId: orderDoc._id.toString() },
+    metadata: {
+      orderId: orderDoc._id.toString(),
+      selectedService: orderDoc.selectedService || "",
+    },
     allow_promotion_codes: true,
     shipping_options: [
       {
         shipping_rate_data: {
-          display_name: "shipping fee",
+          display_name: shippingDisplayName,
           type: "fixed_amount",
           fixed_amount: { amount: shippingFeeCents, currency: "USD" },
         },
